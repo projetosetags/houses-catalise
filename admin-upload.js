@@ -77,3 +77,67 @@ function renderPastoralWeek(){
 }
 function setDefaultWeekStart(){const field=document.getElementById('weeklyMaterialWeek');if(field&&!field.value)field.value=dateISO(sundayOfWeek())}
 setupWeeklyUpload();decorateExistingMaterials();renderPastoralWeek();setDefaultWeekStart();
+
+/* Redes pastorais: cria Redes 01, 02 e 03 quando ausentes e exibe líderes em lista suspensa. */
+function pastoralNetworkNumber(name){const m=String(name||'').match(/(\d+)/);return m?Number(m[1]):999}
+function pastoralUniqueLeaders(list){const seen=new Set();return list.filter(v=>{const k=String(v||'').trim().toLocaleLowerCase('pt-BR');if(!k||seen.has(k))return false;seen.add(k);return true})}
+function installPastoralNetworkStyles(){
+  if(document.getElementById('pastoralNetworkStyles'))return;
+  const s=document.createElement('style');s.id='pastoralNetworkStyles';s.textContent=`
+  #networkList{display:grid;gap:12px}
+  .network-accordion{border:1px solid rgba(218,175,67,.28);border-radius:18px;background:linear-gradient(180deg,rgba(24,34,47,.96),rgba(16,25,39,.96));overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.14)}
+  .network-accordion summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;min-height:72px}
+  .network-accordion summary::-webkit-details-marker{display:none}
+  .network-accordion summary:hover{background:rgba(218,175,67,.06)}
+  .network-summary-main{display:flex;flex-direction:column;gap:5px}
+  .network-summary-main b{font-size:18px;color:#fff}
+  .network-summary-main small{color:#aab7c8;font-size:13px}
+  .network-chevron{font-size:24px;color:#e4bb4b;transition:transform .2s ease}
+  .network-accordion[open] .network-chevron{transform:rotate(180deg)}
+  .network-accordion-body{border-top:1px solid rgba(255,255,255,.07);padding:16px 20px 20px}
+  .network-leaders-title{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#d9b24d;margin-bottom:10px}
+  .network-leader-row{display:grid;grid-template-columns:minmax(110px,.7fr) minmax(0,2fr);gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .network-leader-row:last-child{border-bottom:0}
+  .network-house{font-size:13px;color:#9fb0c5}
+  .network-leader-names{font-weight:700;color:#f7f8fa}
+  .network-leaders-blank{min-height:22px}
+  @media(max-width:640px){.network-accordion summary{padding:15px 16px}.network-accordion-body{padding:14px 16px 18px}.network-leader-row{grid-template-columns:1fr;gap:4px}}
+  `;document.head.appendChild(s);
+}
+function renderPastoralNetworks(snapshot=data){
+  const root=document.getElementById('networkList');if(!root||!snapshot)return;
+  installPastoralNetworkStyles();
+  const networks=(snapshot.networks||[]).slice().sort((a,b)=>pastoralNetworkNumber(a.name)-pastoralNetworkNumber(b.name)||String(a.name).localeCompare(String(b.name),'pt-BR'));
+  const metrics=snapshot.byNetwork||[];
+  const houses=(snapshot.houses||[]).filter(h=>h.active!==false);
+  root.innerHTML=networks.map(n=>{
+    const nh=houses.filter(h=>h.network_id===n.id);
+    const metric=metrics.find(m=>m.id===n.id)||{};
+    const rows=nh.map(h=>{
+      const leaders=pastoralUniqueLeaders([...(h.leader_full_names||[]),...(h.leader_names||[])]);
+      if(!leaders.length)return '';
+      return `<div class="network-leader-row"><span class="network-house">${esc(h.code||'')} • ${esc(h.name||'')}</span><span class="network-leader-names">${leaders.map(esc).join(' • ')}</span></div>`;
+    }).filter(Boolean).join('');
+    return `<details class="network-accordion"><summary><span class="network-summary-main"><b>${esc(n.name)}</b><small>${nh.length} ${nh.length===1?'House':'Houses'} • regularidade ${metric.regularity_pct||0}%</small></span><span class="network-chevron">⌄</span></summary><div class="network-accordion-body"><div class="network-leaders-title">Líderes vinculados</div>${rows||'<div class="network-leaders-blank"></div>'}</div></details>`;
+  }).join('')||'<div class="card">Nenhuma Rede.</div>';
+}
+async function ensurePastoralNetworks(){
+  if(!token)return;
+  try{
+    const r=await fetch(`${API}?token=${encodeURIComponent(token)}&t=${Date.now()}`,{cache:'no-store'});if(!r.ok)return;
+    let snapshot=await r.json();
+    const existingNumbers=new Set((snapshot.networks||[]).map(n=>pastoralNetworkNumber(n.name)));
+    let created=false;
+    for(const num of [1,2,3]){
+      if(existingNumbers.has(num))continue;
+      await post({action:'create_network',name:`Rede ${String(num).padStart(2,'0')}`,leader_name:'',coordinator_name:''});
+      created=true;
+    }
+    if(created){await load();snapshot=data}
+    renderPastoralNetworks(snapshot);
+  }catch(err){console.warn('Redes pastorais:',err)}
+}
+const pastoralNetworkRoot=document.getElementById('networkList');
+if(pastoralNetworkRoot)new MutationObserver(()=>{if(data&&!pastoralNetworkRoot.querySelector('.network-accordion'))setTimeout(()=>renderPastoralNetworks(data),0)}).observe(pastoralNetworkRoot,{childList:true});
+document.addEventListener('click',e=>{if(e.target.closest('.tab[data-tab="networks"]'))setTimeout(()=>renderPastoralNetworks(data),60)});
+setTimeout(ensurePastoralNetworks,350);
