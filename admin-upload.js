@@ -31,7 +31,7 @@ function setupWeeklyUpload(){
       await uploadMaterialForm(fd);
       progress.textContent='Material enviado e publicado com sucesso.';progress.className='hint upload-ok';
       form.reset();document.getElementById('weeklyMaterialDownload').checked=true;setDefaultWeekStart();
-      await load();
+      await load();decorateExistingMaterials();renderPastoralWeek();
     }catch(err){progress.textContent='Erro: '+err.message;progress.className='hint upload-error'}
     finally{if(btn){btn.disabled=false;btn.textContent='Enviar e publicar'}}
   };
@@ -56,7 +56,7 @@ document.addEventListener('click',async e=>{
   if(!file){if(status)status.textContent='Selecione o arquivo.';return;}
   if(file.size>20*1024*1024){if(status)status.textContent='Máximo 20 MB.';return;}
   b.disabled=true;b.textContent='Vinculando…';if(status)status.textContent='';
-  try{const fd=new FormData();fd.append('material_id',id);fd.append('file',file);await uploadMaterialForm(fd);if(status)status.textContent='Arquivo vinculado.';await load();}
+  try{const fd=new FormData();fd.append('material_id',id);fd.append('file',file);await uploadMaterialForm(fd);if(status)status.textContent='Arquivo vinculado.';await load();decorateExistingMaterials();renderPastoralWeek();}
   catch(err){if(status)status.textContent='Erro: '+err.message;}
   finally{b.disabled=false;b.textContent='Vincular arquivo';}
 });
@@ -65,14 +65,15 @@ function dateISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,
 function dateLong(d){return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'long'})}
 function renderPastoralWeek(){
   const weekly=document.getElementById('weekly');if(!weekly)return;
-  let head=weekly.querySelector('.pastoral-week-head');if(!head){head=document.createElement('section');head.className='pastoral-week-head';weekly.prepend(head)}
+  let head=weekly.querySelector('.pastoral-week-head');
+  if(!head){head=document.createElement('section');head.className='pastoral-week-head';weekly.prepend(head)}
   const start=sundayOfWeek(),end=new Date(start);end.setDate(start.getDate()+6);
   const labels=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'],today=dateISO(new Date());
   const days=Array.from({length:7},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return `<div class="pastoral-day ${dateISO(d)===today?'today':''}"><small>${labels[i]}</small><b>${String(d.getDate()).padStart(2,'0')}</b></div>`}).join('');
-  head.innerHTML=`<div class="week-title"><div class="week-logo"></div><div><h2>Central da Semana</h2><p class="week-range">Domingo, ${dateLong(start)} a sábado, ${dateLong(end)}</p></div></div><div class="pastoral-days">${days}</div>`;
+  const html=`<div class="week-title"><div class="week-logo"></div><div><h2>Central da Semana</h2><p class="week-range">Domingo, ${dateLong(start)} a sábado, ${dateLong(end)}</p></div></div><div class="pastoral-days">${days}</div>`;
+  if(head.innerHTML!==html)head.innerHTML=html;
   const commTitle=document.querySelector('#communicationsAdmin')?.previousElementSibling;if(commTitle&&commTitle.tagName==='H3')commTitle.textContent='Anúncios e avisos da semana';
   const matTitle=document.querySelector('#materialsAdmin')?.previousElementSibling;if(matTitle&&matTitle.tagName==='H3')matTitle.textContent='Palavras e materiais da semana';
 }
 function setDefaultWeekStart(){const field=document.getElementById('weeklyMaterialWeek');if(field&&!field.value)field.value=dateISO(sundayOfWeek())}
 setupWeeklyUpload();decorateExistingMaterials();renderPastoralWeek();setDefaultWeekStart();
-new MutationObserver(()=>renderPastoralWeek()).observe(document.getElementById('weekly')||document.body,{childList:true,subtree:true});
