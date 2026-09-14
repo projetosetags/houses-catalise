@@ -1,4 +1,4 @@
-/* Dashboard pastoral: navegação acima dos indicadores e KPIs com efeito 3D. */
+/* Dashboard pastoral: visual executivo, KPIs coloridos e evolução semanal moderna. */
 #app>nav{position:relative;z-index:3;margin:10px 0 16px;background:linear-gradient(180deg,#172131,#101827);border:1px solid rgba(218,175,67,.22);box-shadow:0 14px 34px rgba(5,10,20,.28),inset 0 1px 0 rgba(255,255,255,.06)}
 #app>nav .tab{color:#b7c0ce;transition:.18s ease}
 #app>nav .tab:hover{color:#fff;background:rgba(255,255,255,.05)}
@@ -6,11 +6,17 @@
 .hero{position:relative;overflow:hidden;background:linear-gradient(145deg,#111a28 0%,#172436 54%,#0d1521 100%);border:1px solid rgba(218,175,67,.18);box-shadow:0 16px 38px rgba(4,9,18,.22),inset 0 1px 0 rgba(255,255,255,.05)}
 .hero:after{content:"";position:absolute;right:-80px;top:-110px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(222,180,66,.18),transparent 68%);pointer-events:none}
 .kpis{margin:0 0 18px;gap:13px}
-.kpis article{position:relative;overflow:hidden;min-height:118px;padding:17px 18px;background:linear-gradient(145deg,#1b2635 0%,#111925 58%,#0d141e 100%);border:1px solid rgba(255,255,255,.08);box-shadow:10px 12px 22px rgba(3,8,16,.24),-4px -4px 12px rgba(255,255,255,.025),inset 0 1px 0 rgba(255,255,255,.06);transform:translateZ(0)}
-.kpis article:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#f3d46f,#b98116)}
-.kpis article:after{content:"";position:absolute;right:-32px;bottom:-45px;width:115px;height:115px;border-radius:50%;background:radial-gradient(circle,rgba(231,190,72,.13),transparent 68%)}
-.kpis span{position:relative;z-index:1;color:#aeb8c8;font-size:10px;letter-spacing:.055em}
-.kpis b{position:relative;z-index:1;color:#f6d66f;font-size:31px;text-shadow:0 2px 10px rgba(233,190,65,.18)}
+.kpis article{position:relative;overflow:hidden;min-height:118px;padding:17px 18px;border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 28px rgba(4,9,18,.25),inset 0 1px 0 rgba(255,255,255,.18);transform:translateY(0);transition:transform .18s ease,box-shadow .18s ease}
+.kpis article:hover{transform:translateY(-3px);box-shadow:0 18px 34px rgba(4,9,18,.32),inset 0 1px 0 rgba(255,255,255,.22)}
+.kpis article:after{content:"";position:absolute;right:-30px;bottom:-42px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%)}
+.kpis article:nth-child(1){background:linear-gradient(145deg,#0f766e 0%,#115e59 55%,#134e4a 100%)}
+.kpis article:nth-child(2){background:linear-gradient(145deg,#2563eb 0%,#1d4ed8 58%,#1e3a8a 100%)}
+.kpis article:nth-child(3){background:linear-gradient(145deg,#7c3aed 0%,#6d28d9 58%,#4c1d95 100%)}
+.kpis article:nth-child(4){background:linear-gradient(145deg,#db2777 0%,#be185d 58%,#831843 100%)}
+.kpis article:nth-child(5){background:linear-gradient(145deg,#ea580c 0%,#c2410c 58%,#9a3412 100%)}
+.kpis article:nth-child(6){background:linear-gradient(145deg,#dc2626 0%,#b91c1c 58%,#7f1d1d 100%)}
+.kpis span{position:relative;z-index:1;color:rgba(255,255,255,.86);font-size:10px;letter-spacing:.065em;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.kpis b{position:relative;z-index:1;color:#fff;font-size:32px;text-shadow:0 3px 12px rgba(0,0,0,.25)}
 .dashboard{align-items:stretch}.dashboard>.card{border:1px solid #e8ebef;box-shadow:0 12px 28px rgba(15,23,42,.07)}
-#weekChart{height:230px;display:block;padding:6px 4px 0;overflow:visible}.modern-line-chart{width:100%;height:100%;display:block}.modern-line-chart .gridline{stroke:#e6e9ee;stroke-width:1}.modern-line-chart .area{fill:url(#weeklyArea)}.modern-line-chart .line{fill:none;stroke:#c99b2c;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}.modern-line-chart .point{fill:#fff;stroke:#c99b2c;stroke-width:3}.modern-line-chart .value{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#263244}.modern-line-chart .label{font:10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#7a8492}.modern-chart-legend{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:-2px 4px 10px;color:#6b7280;font-size:11px}.modern-chart-legend b{color:#253044;font-size:12px}
+#weekChart{height:230px;display:block;padding:6px 4px 0;overflow:visible}.modern-line-chart{width:100%;height:100%;display:block}.modern-line-chart .gridline{stroke:#e6e9ee;stroke-width:1}.modern-line-chart .area{fill:url(#weeklyArea)}.modern-line-chart .line{fill:none;stroke:#2563eb;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}.modern-line-chart .point{fill:#fff;stroke:#2563eb;stroke-width:3}.modern-line-chart .value{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#263244}.modern-line-chart .label{font:10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#7a8492}.modern-chart-legend{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:-2px 4px 10px;color:#6b7280;font-size:11px}.modern-chart-legend b{color:#253044;font-size:12px}
 @media(max-width:719px){.kpis{grid-template-columns:repeat(2,1fr)}.kpis article{min-height:104px;padding:14px 15px}.kpis b{font-size:27px}#app>nav{margin-top:9px}}
