@@ -13,7 +13,7 @@
     const msg=$('#commMessage');
     if(msg){msg.placeholder='Assunto / comunicado';msg.rows=3}
     const start=$('#commStart'),end=$('#commEnd');
-    if(start){start.value=start.value||todayISO();start.min=todayISO();start.setAttribute('aria-label','Início da visualização')}
+    if(start){if(!start.value)start.value=todayISO();start.min=todayISO();start.setAttribute('aria-label','Início da visualização')}
     if(end){end.min=start?.value||todayISO();end.setAttribute('aria-label','Data do evento / fim da visualização')}
     const form=$('#communicationForm');
     if(form&&!form.querySelector('.comm-date-caption')){
@@ -35,7 +35,7 @@
       [...commRoot.querySelectorAll('.admin-item')].forEach(card=>{
         card.classList.add('published-communication');
         const del=card.querySelector('.js-delete-comm');
-        if(del){del.textContent='×';del.title='Excluir anúncio';del.setAttribute('aria-label','Excluir anúncio');del.classList.add('windows-close');const actions=del.closest('.admin-actions');if(actions){card.appendChild(del);if(!actions.children.length)actions.remove()}}
+        if(del&&!del.classList.contains('windows-close')){del.textContent='×';del.title='Excluir anúncio';del.setAttribute('aria-label','Excluir anúncio');del.classList.add('windows-close');const actions=del.closest('.admin-actions');card.appendChild(del);if(actions&&!actions.children.length)actions.remove()}
       });
     }
     const matRoot=$('#materialsAdmin');
@@ -43,7 +43,7 @@
       [...matRoot.querySelectorAll('.admin-item')].forEach(card=>{
         card.classList.add('published-material');
         const del=card.querySelector('.js-delete-material');
-        if(del){del.textContent='×';del.title='Excluir material';del.setAttribute('aria-label','Excluir material');del.classList.add('windows-close');card.appendChild(del)}
+        if(del&&!del.classList.contains('windows-close')){del.textContent='×';del.title='Excluir material';del.setAttribute('aria-label','Excluir material');del.classList.add('windows-close');card.appendChild(del)}
       });
     }
   }
@@ -51,12 +51,15 @@
   function headings(){
     const form=$('#communicationForm');
     const card=form?.closest('.card');
-    if(card){const h=card.querySelector('h3');if(h)h.textContent='Publicar nova comunicação';const hint=card.querySelector('.hint');if(hint)hint.textContent='Escolha a agenda, informe o assunto e a data do evento. A visualização começa hoje e termina no dia do evento.'}
+    if(card){const h=card.querySelector('h3');if(h&&h.textContent!=='Publicar nova comunicação')h.textContent='Publicar nova comunicação';const hint=card.querySelector('.hint');const text='Escolha a agenda, informe o assunto e a data do evento. A visualização começa hoje e termina no dia do evento.';if(hint&&hint.textContent!==text)hint.textContent=text}
   }
 
-  function apply(){buildCommunicationForm();headings();decoratePublished()}
+  let applying=false;
+  function apply(){if(applying)return;applying=true;try{buildCommunicationForm();headings();decoratePublished()}finally{applying=false}}
   apply();
-  const observer=new MutationObserver(()=>apply());
-  const weekly=$('#weekly');if(weekly)observer.observe(weekly,{subtree:true,childList:true});
+  const observer=new MutationObserver(()=>{clearTimeout(observer._t);observer._t=setTimeout(apply,25)});
+  const comm=$('#communicationsAdmin'),mats=$('#materialsAdmin');
+  if(comm)observer.observe(comm,{subtree:true,childList:true});
+  if(mats)observer.observe(mats,{subtree:true,childList:true});
   document.addEventListener('click',e=>{if(e.target.closest('.tab[data-tab="weekly"]'))setTimeout(apply,50)});
 })();
