@@ -1,4 +1,5 @@
-import { Client, TablesDB, Storage, Tokens, Query, ID, InputFile } from 'node-appwrite';
+const { Client, TablesDB, Storage, Tokens, Query, ID } = require('node-appwrite');
+const { InputFile } = require('node-appwrite/file');
 
 const DB='houses_catalise';
 const BUCKET='houses_files';
@@ -80,7 +81,7 @@ async function housePayload(s,code){
   };
 }
 
-export default async ({req,res,log,error})=>{
+module.exports=async ({req,res,log,error})=>{
   try{
     const s=services(req);const url=new URL(req.url||'http://local/');const publicMode=url.searchParams.get('public')==='1';const code=(url.searchParams.get('id')||req.headers['x-house-id']||'').replace(/\D/g,'').slice(0,4);
     if(req.method==='GET'&&publicMode)return res.json(await publicPayload(s));
