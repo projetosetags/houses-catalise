@@ -2,27 +2,35 @@ const endpoint='https://fra.cloud.appwrite.io/v1';
 const projectId='6aabcd0b000c5d1298ab';
 const origin='https://projetosetags.github.io';
 const hostname='projetosetags.github.io';
+const platformId='houses_github_pages_2026';
 const apiKey=process.env.APPWRITE_API_KEY||'';
 
 function assert(ok,message){if(!ok)throw new Error(message)}
 function adminHeaders(){return {'Content-Type':'application/json','X-Appwrite-Project':projectId,'X-Appwrite-Key':apiKey,'X-Appwrite-Response-Format':'2.0.0'}}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 async function ensureWebPlatform(){
   if(!apiKey){console.log('DIAG: APPWRITE_API_KEY não disponível no smoke; pulando autorreparo da plataforma.');return}
-  const list=await fetch(`${endpoint}/project/platforms`,{headers:adminHeaders()});
-  const text=await list.text();
-  if(!list.ok){console.log(`DIAG: não foi possível listar plataformas: HTTP ${list.status} ${text.slice(0,500)}`);return}
-  let data={};try{data=JSON.parse(text)}catch{}
-  const platforms=data.platforms||data.documents||[];
-  console.log('DIAG: plataformas web:',platforms.map(p=>({id:p.$id||p.id,type:p.type,hostname:p.hostname,name:p.name})));
-  const exists=platforms.some(p=>String(p.hostname||'').toLowerCase()===hostname);
-  if(exists){console.log(`DIAG: plataforma ${hostname} já existe.`);return}
-  const create=await fetch(`${endpoint}/project/platforms/web`,{
-    method:'POST',headers:adminHeaders(),body:JSON.stringify({platformId:'github_pages',name:'Houses Catalise - GitHub Pages',hostname})
-  });
-  const body=await create.text();
-  if(create.ok||create.status===409)console.log(`DIAG: plataforma ${hostname} criada/confirmada (HTTP ${create.status}).`);
-  else console.log(`DIAG: falha ao criar plataforma: HTTP ${create.status} ${body.slice(0,500)}`);
+  const get=await fetch(`${endpoint}/project/platforms/${platformId}`,{headers:adminHeaders()});
+  const getText=await get.text();
+  if(get.ok){
+    let p={};try{p=JSON.parse(getText)}catch{}
+    console.log('DIAG: plataforma dedicada encontrada:',{id:p.$id||p.id,type:p.type,hostname:p.hostname,name:p.name});
+    if(String(p.hostname||'').toLowerCase()!==hostname||p.type!=='web'){
+      const up=await fetch(`${endpoint}/project/platforms/web/${platformId}`,{method:'PUT',headers:adminHeaders(),body:JSON.stringify({name:'Houses Catalise - GitHub Pages',hostname})});
+      const upText=await up.text();
+      assert(up.ok,`Não foi possível atualizar plataforma web: HTTP ${up.status} ${upText.slice(0,500)}`);
+      console.log('DIAG: plataforma dedicada atualizada para',hostname);
+    }
+  }else if(get.status===404){
+    const create=await fetch(`${endpoint}/project/platforms/web`,{method:'POST',headers:adminHeaders(),body:JSON.stringify({platformId,name:'Houses Catalise - GitHub Pages',hostname})});
+    const body=await create.text();
+    assert(create.ok,`Não foi possível criar plataforma web dedicada: HTTP ${create.status} ${body.slice(0,500)}`);
+    console.log(`DIAG: plataforma web dedicada criada: ${hostname}`);
+  }else{
+    throw new Error(`Não foi possível consultar plataforma web: HTTP ${get.status} ${getText.slice(0,500)}`);
+  }
+  await sleep(1800);
 }
 
 async function inspectFunction(functionId){
@@ -36,10 +44,7 @@ async function inspectFunction(functionId){
 
 async function preflight(functionId){
   const url=`${endpoint}/functions/${functionId}/executions`;
-  const r=await fetch(url,{
-    method:'OPTIONS',
-    headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type,x-appwrite-project,x-appwrite-response-format'}
-  });
+  const r=await fetch(url,{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type,x-appwrite-project,x-appwrite-response-format'}});
   const allow=r.headers.get('access-control-allow-origin')||'';
   console.log(`DIAG: preflight ${functionId}: HTTP ${r.status}; allow-origin=${allow||'ausente'}`);
   assert(r.ok||r.status===204,`CORS preflight falhou: HTTP ${r.status}`);
