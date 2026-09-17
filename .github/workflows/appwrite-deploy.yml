@@ -1,0 +1,48 @@
+name: Deploy Appwrite - Houses Catalise
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Appwrite CLI and seed dependency
+        run: |
+          npm install -g appwrite-cli@latest
+          npm install --no-save node-appwrite@latest
+
+      - name: Configure Appwrite CLI
+        env:
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: |
+          test -n "$APPWRITE_API_KEY" || (echo "Missing APPWRITE_API_KEY" && exit 1)
+          appwrite client --endpoint "https://fra.cloud.appwrite.io/v1" --project-id "6aabcd0b000c5d1298ab" --key "$APPWRITE_API_KEY"
+
+      - name: Deploy database schema
+        run: appwrite push tables --all --force
+
+      - name: Deploy private storage bucket
+        run: appwrite push buckets --all --force
+
+      - name: Deploy two backend functions
+        run: appwrite push functions --all --force
+
+      - name: Seed initial configuration
+        env:
+          APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
+          APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          HOUSES_ADMIN_TOKEN: ${{ secrets.HOUSES_ADMIN_TOKEN }}
+        run: node scripts/seed-appwrite.mjs
