@@ -12,7 +12,7 @@
     const cat=m.category==='kids'?'Material Kids':m.category==='principal'?'Material Principal':m.category==='lideranca'?'Liderança':'Material';
     const view=m.view_url||m.material_url,down=m.download_url||m.material_url;
     const usable=v=>!!(v&&!/^data:[^,]*;base64,$/i.test(v));
-    const hasView=usable(view),hasDown=m.allow_download&&usable(down),canPers=m.mime_type==='application/pdf'&&m.personalization_mode&&m.personalization_mode!=='none'&&hasView;
+    const hasView=usable(view),hasDown=m.allow_download&&usable(down),canPers=m.mime_type==='application/pdf'&&m.personalization_mode&&m.personalization_mode!=='none'&&hasDown;
     return `<article class="material-card week-material-card"><span class="cat">${esc(cat)}</span><h3>${esc(m.title)}</h3>${m.description?`<p>${esc(m.description)}</p>`:''}${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}<div class="material-actions ${canPers?'three':''}">${hasView?`<button type="button" class="js-material-view" data-material="${m.id}">Visualizar</button>`:'<button disabled>Arquivo em processamento</button>'}${hasDown?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar</button>`:''}${canPers?`<button class="special js-personalize" type="button" data-material="${m.id}">Baixar para minha House</button>`:''}</div></article>`;
   }
   window.renderMaterials=function(target,list){
