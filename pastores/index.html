@@ -8,49 +8,85 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Houses Pastores">
 <title>Houses Pastores</title>
-<link rel="icon" type="image/png" href="../assets/houses-pastores-logo.png">
-<link rel="apple-touch-icon" href="../assets/houses-pastores-logo.png">
+<link rel="icon" type="image/png" href="../assets/houses-pastores-logo.png?v=20260917-2">
+<link rel="apple-touch-icon" href="../assets/houses-pastores-logo.png?v=20260917-2">
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b0f14;color:#fff}#gate{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top,#2b2414 0,#0b0f14 45%)}.box{width:min(420px,100%);text-align:center}.logo{width:138px;height:138px;object-fit:cover;border-radius:28px;box-shadow:0 18px 50px #0008}.box h1{margin:20px 0 5px;font-size:29px}.box p{margin:0 0 22px;color:#c9c9c9}.box input{width:100%;padding:16px;border:1px solid #5d5132;border-radius:14px;background:#171717;color:#fff;font-size:17px;outline:none}.box button{width:100%;margin-top:12px;padding:16px;border:0;border-radius:14px;background:linear-gradient(135deg,#b88a2a,#f0d173);color:#17120a;font-weight:800;font-size:17px}.hint{font-size:12px!important;margin-top:14px!important;color:#8e8e8e!important}#app{display:none;width:100%;height:100%;border:0;background:#0b0f14}.reset{position:fixed;z-index:1000;right:12px;top:12px;width:38px!important;height:38px!important;padding:0!important;margin:0!important;border-radius:8px!important;border:1px solid rgba(255,255,255,.16)!important;background:#b91c1c!important;color:#fff!important;font-size:26px!important;line-height:34px!important;font-weight:400!important;box-shadow:0 5px 18px rgba(0,0,0,.28);cursor:pointer}.reset:hover{background:#dc2626!important}.reset:active{transform:scale(.96)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b0f14;color:#fff}#gate{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top,#2b2414 0,#0b0f14 45%)}.box{width:min(420px,100%);text-align:center}.logo{width:138px;height:138px;object-fit:cover;border-radius:28px;box-shadow:0 18px 50px #0008}.box h1{margin:20px 0 5px;font-size:29px}.box p{margin:0 0 22px;color:#c9c9c9}.box input{width:100%;padding:16px;border:1px solid #5d5132;border-radius:14px;background:#171717;color:#fff;font-size:17px;outline:none}.box button{width:100%;margin-top:12px;padding:16px;border:0;border-radius:14px;background:linear-gradient(135deg,#b88a2a,#f0d173);color:#17120a;font-weight:800;font-size:17px}.box button:disabled{opacity:.65}.hint{font-size:12px!important;margin-top:14px!important;color:#8e8e8e!important}.msg{min-height:22px;margin:12px 0 0!important;color:#fca5a5!important;font-size:13px}.msg.ok{color:#86efac!important}#app{display:none;width:100%;height:100%;border:0;background:#0b0f14}.reset{position:fixed;z-index:1000;right:12px;top:12px;width:38px!important;height:38px!important;padding:0!important;margin:0!important;border-radius:8px!important;border:1px solid rgba(255,255,255,.16)!important;background:#b91c1c!important;color:#fff!important;font-size:26px!important;line-height:34px!important;font-weight:400!important;box-shadow:0 5px 18px rgba(0,0,0,.28);cursor:pointer}.reset:hover{background:#dc2626!important}.reset:active{transform:scale(.96)}
 </style>
 </head>
 <body>
 <div id="gate">
   <div class="box">
-    <img class="logo" src="../assets/houses-pastores-logo.png" alt="Houses Pastores">
+    <img class="logo" src="../assets/houses-pastores-logo.png?v=20260917-2" alt="Houses Pastores">
     <h1>Houses Pastores</h1>
     <p>Acesso pastoral protegido</p>
     <input id="key" type="password" autocomplete="off" placeholder="Chave pastoral">
     <button id="enter" type="button">Entrar</button>
-    <p class="hint">No primeiro acesso deste aparelho, informe sua chave pastoral. Depois, o acesso fica salvo somente neste dispositivo.</p>
+    <p id="msg" class="msg"></p>
+    <p class="hint">A chave é validada no Appwrite e fica salva somente neste dispositivo. Chaves antigas da versão Supabase são descartadas automaticamente.</p>
   </div>
 </div>
 <iframe id="app" title="Houses Pastores"></iframe>
 <button id="reset" class="reset" type="button" title="Sair" aria-label="Sair" style="display:none">×</button>
 <script>
-const STORE='housesPastoresAccess';
+const STORE='housesPastoresAccessAppwriteV2';
+const LEGACY='housesPastoresAccess';
+const APPWRITE_ENDPOINT='https://fra.cloud.appwrite.io/v1';
+const APPWRITE_PROJECT='6aabcd0b000c5d1298ab';
 const gate=document.getElementById('gate');
 const app=document.getElementById('app');
 const key=document.getElementById('key');
 const reset=document.getElementById('reset');
+const enter=document.getElementById('enter');
+const msg=document.getElementById('msg');
+function showMessage(text,ok=false){msg.textContent=text||'';msg.classList.toggle('ok',!!ok)}
 function openPanel(access){
   if(!access)return;
   gate.style.display='none';
   app.style.display='block';
   reset.style.display='block';
-  app.src='../admin.html?token='+encodeURIComponent(access);
+  app.src='../admin.html?v=20260917-2&token='+encodeURIComponent(access);
+}
+async function validate(access){
+  const payload={body:'',async:false,path:'/?token='+encodeURIComponent(access),method:'GET'};
+  const r=await fetch(APPWRITE_ENDPOINT+'/functions/pastoral-api/executions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Appwrite-Project':APPWRITE_PROJECT,'X-Appwrite-Response-Format':'2.0.0'},
+    body:JSON.stringify(payload),cache:'no-store'
+  });
+  const execution=await r.json().catch(()=>({}));
+  if(!r.ok)return false;
+  return Number(execution.responseStatusCode)===200;
+}
+async function validateAndOpen(access,{silent=false}={}){
+  if(!access)return false;
+  enter.disabled=true;enter.textContent='Verificando…';
+  if(!silent)showMessage('Verificando acesso…',true);
+  try{
+    const ok=await validate(access);
+    if(!ok){
+      localStorage.removeItem(STORE);localStorage.removeItem(LEGACY);
+      showMessage('A chave salva não é válida no Appwrite. Digite a nova chave pastoral.');
+      gate.style.display='flex';app.style.display='none';reset.style.display='none';key.value='';key.focus();
+      return false;
+    }
+    localStorage.setItem(STORE,access);localStorage.removeItem(LEGACY);
+    openPanel(access);return true;
+  }catch(e){
+    showMessage('Não foi possível validar agora. Atualize a página e tente novamente.');
+    gate.style.display='flex';app.style.display='none';key.focus();return false;
+  }finally{enter.disabled=false;enter.textContent='Entrar'}
 }
 function saveAndOpen(){
   const access=key.value.trim();
   if(!access){key.focus();return;}
-  localStorage.setItem(STORE,access);
-  openPanel(access);
+  validateAndOpen(access);
 }
 document.getElementById('enter').addEventListener('click',saveAndOpen);
 key.addEventListener('keydown',e=>{if(e.key==='Enter')saveAndOpen()});
-reset.addEventListener('click',()=>{localStorage.removeItem(STORE);app.src='about:blank';app.style.display='none';reset.style.display='none';gate.style.display='flex';key.value='';key.focus()});
-const saved=localStorage.getItem(STORE);
-if(saved)openPanel(saved);
+reset.addEventListener('click',()=>{localStorage.removeItem(STORE);localStorage.removeItem(LEGACY);app.src='about:blank';app.style.display='none';reset.style.display='none';gate.style.display='flex';key.value='';showMessage('');key.focus()});
+const saved=localStorage.getItem(STORE)||localStorage.getItem(LEGACY);
+if(saved)validateAndOpen(saved,{silent:true});
 </script>
 </body>
 </html>
