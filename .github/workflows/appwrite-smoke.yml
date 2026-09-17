@@ -1,0 +1,30 @@
+name: Smoke Appwrite Houses
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'appwrite-api.js'
+      - 'appwrite-photo.js'
+      - 'appwrite-admin.js'
+      - 'index.html'
+      - 'admin.html'
+      - 'scripts/smoke-appwrite.mjs'
+      - '.github/workflows/appwrite-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test Appwrite public execution and CORS
+        run: node scripts/smoke-appwrite.mjs
