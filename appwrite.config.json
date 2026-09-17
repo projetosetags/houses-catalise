@@ -1,0 +1,36 @@
+{
+  "projectId": "6aabcd0b000c5d1298ab",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "functions": [
+    {
+      "$id": "houses-api",
+      "name": "Houses API",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "functions/houses-api",
+      "scopes": ["databases.read", "tables.read", "rows.read", "rows.write", "buckets.read", "files.read", "files.write"]
+    },
+    {
+      "$id": "pastoral-api",
+      "name": "Pastoral API",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "functions/pastoral-api",
+      "scopes": ["databases.read", "tables.read", "rows.read", "rows.write", "buckets.read", "files.read", "files.write"]
+    }
+  ]
+}
