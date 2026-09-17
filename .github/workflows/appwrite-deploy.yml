@@ -9,6 +9,7 @@ on:
       - 'appwrite.config.json'
       - 'scripts/provision-tables.mjs'
       - 'scripts/seed-appwrite.mjs'
+      - 'scripts/refresh-notices.mjs'
       - 'scripts/import-legacy-notices.mjs'
       - '.github/workflows/appwrite-deploy.yml'
 
@@ -68,7 +69,14 @@ jobs:
           HOUSES_ADMIN_TOKEN: ${{ secrets.HOUSES_ADMIN_TOKEN }}
         run: node scripts/seed-appwrite.mjs
 
-      - name: Recover October 2026 notices from legacy backend
+      - name: Refresh known Sep-Oct 2026 notices
+        env:
+          APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
+          APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: node scripts/refresh-notices.mjs
+
+      - name: Recover extra October 2026 notices from legacy backend
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
           APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
