@@ -2,7 +2,7 @@
 const CONFIG = {church_name:'Catalise Church',slogan:'Houses que transformam vidas',verse_text:'Pois onde estiverem dois ou três reunidos em meu nome, ali estou no meio deles.',verse_ref:'Mateus 18:20'};
 function fail(message,code='invalid-argument'){const e=new Error(message);e.code=code;throw e;}
 function text(v,max=200,required=false){if(typeof v!=='string'&&v!=null)fail('Texto inválido.');const s=String(v??'').trim();if(s.length>max||(required&&!s))fail('Confira os campos obrigatórios e o tamanho do texto.');return s;}
-function id(v){const s=text(v,128,true);if(!/^[A-Za-z0-9_-]+$/.test(s))fail('Identificador inválido.');return s;}
+function id(v){const s=text(v,36,true);if(!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s))fail('Identificador inválido.');return s;}
 function date(v,required=true){if(!v&&!required)return null;const s=text(v,10,true);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s+'T12:00:00Z').toISOString().slice(0,10)!==s)fail('Data inválida.');return s;}
 function today(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());}
 function allowed(p,h){return !!(p?.active===true&&h?.active!==false&&(p.role==='admin'||(p.role==='pastor'&&p.network_ids?.includes(h.network_id))||(p.role==='leader'&&p.house_ids?.includes(h.id))));}

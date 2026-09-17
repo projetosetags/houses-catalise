@@ -1,105 +1,125 @@
-# Houses Catalise — Firebase
+# Houses Catalise — Appwrite Free
 
-**Restrição de implantação (17/09/2026): somente planos gratuitos.** O plano Blaze
-não foi autorizado. Esta branch contém a proposta inicial com Storage e Cloud
-Functions, que depende de Blaze e não deve ser implantada nem integrada à `main`
-nessa forma. O Firebase permanece no Spark. Uma alternativa gratuita está em
-avaliação; nenhum novo provedor foi contratado ou configurado.
+House Líderes e Houses Pastores usam a mesma API, com a interface existente e
+acesso individual. O novo backend usa Appwrite Auth, TablesDB, Storage e Functions.
+O frontend permanece preparado para o GitHub Pages deste repositório.
 
-House Líderes e Houses Pastores compartilham o projeto Firebase `houses-catalise`.
-O frontend estático mantém os endereços `index.html`, `admin.html` e `pastores/`.
+**Situação em 17/09/2026:** migração de código preparada e testada localmente.
+O projeto Appwrite ainda não foi criado: aguarda a conclusão do acesso seguro
+à conta para provisionamento. Este PR permanece em rascunho. Não integrar à `main` até configurar
+o projeto real e validar login, publicação de PDF e registro de foto.
+`appwrite-config.js` permanece vazio intencionalmente até esse provisionamento.
 
-## Dados e arquivos
+## Organização dos dados e arquivos
 
-| Conteúdo | Local |
+| Conteúdo | Local no Appwrite |
 |---|---|
-| Redes e Houses | Firestore: `networks`, `houses` |
-| Usuários e vínculos | Firebase Authentication e Firestore: `users` |
-| Reuniões | Firestore: `reports/{houseId}_{AAAA-MM-DD}` |
-| Foto única por reunião | Storage: `meetings/{houseId}/{AAAA-MM-DD}/photo.jpg` |
-| PDFs e imagens semanais | Storage: `materials/{inicio-da-semana}/{materialId}/original.ext` |
-| Metadados dos materiais | Firestore: `materials` |
-| Comunicações e cuidado pastoral | Firestore: `communications`, `care` |
+| Redes e Houses | Banco `houses`, tabelas `networks` e `houses` |
+| Contas e permissões | Auth e tabela privada `users` |
+| Reunião por House e data | `reports`, chave `0119_2026-09-17` |
+| Foto da reunião | Bucket privado `house-files`, pasta `meetings/{house}/{data}` |
+| PDFs e imagens semanais | Mesmo bucket, pasta `materials/{semana}/{material}` |
+| Informações dos materiais | Tabela `materials` |
+| Comunicações e cuidado pastoral | `communications` e `care` |
+| Envios em andamento | `uploads`; partes temporárias em `uploads/{id}/{geração}` |
+| Controle de gravações simultâneas | Tabela privada `locks` |
 
-Fotos são convertidas para JPEG com até 1600 px, máximo 5 MB. Materiais aceitam PDF,
-JPG ou PNG até 20 MB. Nenhum arquivo é convertido em base64 para o Firestore.
-Uma reunião usa a mesma chave por House e data: um reenvio atualiza o registro e a
-foto existente. Reuniões realizadas exigem foto; adiamentos exigem justificativa.
+Os arquivos binários ficam no Storage; o banco guarda metadados. Uma reunião
+realizada exige uma foto. Fotos são reduzidas no aparelho para JPEG de até
+1600 pixels, com limite de 5 MB. Materiais aceitam PDF, JPG e PNG de até 20 MB.
+O envio usa partes de 512 KB e confere tamanho, assinatura do formato e SHA-256.
+A finalização de arquivos maiores ocorre em segundo plano para respeitar o
+limite de 30 segundos das chamadas síncronas do Appwrite.
+
+Corrigir a mesma House/data mantém um registro. A foto anterior só é removida
+após salvar a substituta. A função `houses-cleanup`, sem acesso de clientes,
+limpa envios vencidos a cada seis horas, até 20 por execução. Ela preserva os
+arquivos vinculados a registros. Nenhuma foto histórica é apagada por idade;
+excluir um material no painel apenas o arquiva.
 
 ## Acesso
 
-- Administrador: cadastros, publicação, usuários e acompanhamento geral.
+- Administrador: cadastros, materiais, comunicações, usuários e acompanhamento.
 - Pastor: acompanhamento e cuidado das Redes atribuídas.
-- Líder: dados e reuniões das Houses atribuídas e materiais destinados a elas.
+- Líder: reuniões e dados das Houses atribuídas, com materiais do seu público.
 
-O ID da House identifica o cadastro; a autenticação usa conta individual.
-Tokens antigos na URL não autorizam o novo backend. Perfis são consultados no
-servidor a cada chamada. O cliente não pode alterar funções ou seus vínculos.
-O administrador cadastra e-mail e vínculos em **Acessos**; o usuário define sua
-senha pela opção **Definir ou recuperar senha**. Arquivos são lidos com a sessão
-autenticada, sem links públicos permanentes.
+O ID da House identifica o cadastro; não substitui e-mail e senha. Cada chamada
+valida a sessão/JWT e consulta o perfil ativo. Clientes não têm permissão direta
+nas tabelas nem no bucket. Somente a função autorizada escreve no banco ou envia
+arquivos. A leitura recebe um link de arquivo válido por cinco minutos, após
+verificação do público. Um link já emitido pode funcionar até expirar.
 
-## Referência da implantação original — suspensa
+O administrador cadastra os e-mails em **Acessos**. Cada pessoa define a senha
+pela opção **Definir ou recuperar senha**. Não há senha compartilhada ou chave
+administrativa no frontend. A página `recuperar.html` remove o segredo da URL do
+histórico e não carrega scripts de terceiros. O SDK Appwrite 27.0.0 está incluído
+localmente, com sua licença, em `assets/vendor`.
 
-Os passos abaixo documentam a proposta original e não estão autorizados para
-execução enquanto incluírem recursos que exigem faturamento.
+Desativar download remove/bloqueia a ação de baixar pelo aplicativo. Como em
+qualquer visualizador web, permitir visualizar entrega os bytes ao navegador;
+essa opção não constitui proteção contra cópia.
 
-1. Ativar Blaze e vincular faturamento para Storage e Functions.
-2. Criar Firestore em modo nativo/produção, registrar o app web e habilitar
-   Authentication por e-mail/senha. Incluir `projetosetags.github.io` nos domínios
-   autorizados. Colocar somente a configuração pública em `firebase-config.js`.
-3. Criar o bucket padrão e configurar CORS com `firebase/storage-cors.json`.
-4. Em ambiente autenticado no projeto:
+## Provisionamento automático
 
-   ```sh
-   npm ci
-   npm ci --prefix functions
-   npm test
-   npm run check
-   firebase deploy --project houses-catalise --only firestore,storage,functions
-   gcloud storage buckets update gs://houses-catalise.firebasestorage.app --cors-file=firebase/storage-cors.json
-   ```
+Requer um projeto Appwrite Cloud na organização **Free**, sem upgrade de plano.
+Após autenticar e criar esse projeto, configure uma chave temporária de servidor
+no ambiente seguro. Nunca coloque essa chave no GitHub nem em mensagens públicas.
+A chave de provisionamento precisa dos escopos de leitura/gravação de projeto,
+plataformas, bancos, tabelas, colunas, índices, linhas, buckets, arquivos, usuários,
+funções e execuções, além de `sessions.write` e `tokens.write`.
+Os escopos das chaves dinâmicas das funções são reduzidos pelo instalador.
 
-5. Definir `HOUSES_PROJECT_ID`, `HOUSES_ADMIN_EMAIL` e, quando disponível,
-   `HOUSES_SEED_FILE` com os cadastros conferidos. Rodar `node scripts/seed.cjs`.
-   A carga é idempotente e não importa registros de teste nem credenciais antigas.
-   Sem arquivo de carga, cria apenas Redes 01 a 04. A carga privada foi reconstruída
-   a partir do PDF oficial de identificação da Rede 04 (treinamento de 09/09/2026),
-   com 25 Houses e seus IDs e líderes. Não é uma exportação do banco anterior e não
-   inclui e-mails, endereços nem reuniões. O arquivo fica fora do repositório público.
-6. Publicar o frontend somente depois de testar o backend. Para Firebase Hosting,
-   executar `npm run build:hosting` e `firebase deploy --only hosting`.
+1. Instalar dependências com `npm ci` e `npm ci --prefix functions`.
+2. Criar `.env` a partir de `.env.example` e preencher endpoint regional, ID do
+   projeto, chave temporária e e-mail/nome do administrador.
+3. Manter a carga conferida em `private/seed.local.json` e definir
+   `HOUSES_SEED_FILE` para esse caminho. A carga preparada contém as 25 Houses da
+   Rede 04, seus IDs e líderes, conferidos no PDF de treinamento de 09/09/2026.
+   Ela fica fora do repositório público. Não inventa e-mails, endereços ou reuniões.
+4. Executar `npm run provision:appwrite`.
 
-Não publicar chaves de serviço nem exportações privadas no GitHub ou no frontend.
-Fotos não são apagadas automaticamente por idade. Materiais excluídos são
-arquivados logicamente e ficam inacessíveis pelo aplicativo.
+O comando habilita e-mail/senha e JWT, cadastra `projetosetags.github.io`, cria um
+banco serverless, tabelas e índices privados, um bucket e duas funções. Cria as
+Redes 01–04, importa as Houses sem sobrescrever cadastros existentes e cria o
+perfil do proprietário sem senha predefinida. Publica API e limpeza e escreve
+apenas os identificadores públicos em `appwrite-config.js`.
 
-## Testes
+Não altera faturamento, não cria banco dedicado e não habilita plano pago.
+Depois de validar o projeto real, revogue a chave temporária; as funções usam
+chaves dinâmicas fornecidas pelo Appwrite. Publique a configuração pública e o
+frontend somente após concluir os testes abaixo. O projeto gratuito anterior
+não é alterado por estes scripts.
 
-`npm test` verifica escopos de acesso e invariantes das reuniões. `npm run check`
-verifica sintaxe e referências. Testes reais das regras usam os emuladores
-Firestore/Storage e exigem Java 21 ou superior:
+## Validação
 
 ```sh
-firebase emulators:exec --project demo-houses --only firestore,storage "node --test test/rules.integration.cjs"
+npm test
+npm run check
+npm run build:hosting
 ```
 
-O frontend conserva recursos de materiais por semana, personalização de PDFs,
-endereços, redes, relatórios, semáforo e cuidado pastoral.
+Os testes locais verificam papéis, isolamento de Houses/Redes, foto obrigatória,
+correção sem duplicidade, envio em partes, integridade, público dos PDFs,
+arquivamento, limpeza e os controladores dos dois painéis. Os testes de API usam
+adaptadores em memória; ainda não comprovam comportamento do Appwrite Cloud.
+A checagem automática do GitHub executa os mesmos comandos em Node 22.
 
-## Situação da preparação em 17/09/2026
+Antes da troca do site, testar no Appwrite real: primeiro acesso do proprietário;
+conta de líder com uma House; bloqueio de outra House; PDF publicado e baixado;
+foto enviada, visualizada e substituída; recuperação de senha e conta desativada.
+Verificar também que chamadas diretas ao banco e ao bucket são negadas.
+O build em `dist/` exclui backend, scripts, testes e dados privados.
 
-- Projeto `houses-catalise`, app web e Firestore em São Paulo criados; login
-  por e-mail e senha habilitado no Firebase Authentication.
-- Domínio `projetosetags.github.io` autorizado no Firebase Authentication.
-- Redes 01 a 04 cadastradas no Firestore. A carga das 25 Houses está preparada.
-- Migração de código e testes locais concluídos; não publicados em produção.
-- O usuário recusou a ativação do Blaze. Storage e Functions da proposta original
-  não serão implantados; o projeto permanece no Spark e a solução deve ser
-  adaptada para planos gratuitos.
-- A conexão do GitHub foi corrigida para a conta `projetosetags`, com acesso
-  de escrita confirmado ao repositório `projetosetags/houses-catalise`.
+## Limites do plano gratuito
 
-As regras testadas, o backend, os perfis de acesso e os arquivos precisam ser
-implantados antes da troca do frontend. Não tratar esta preparação como sistema
-em produção.
+A solução usa um banco, um bucket e duas funções. Em 17/09/2026, o Free oferece
+2 GB de armazenamento e 5 GB/mês de tráfego, compartilhados na organização.
+Há limites de execuções, leituras e gravações; o serviço pode ser pausado após
+uma semana de inatividade. Ao atingir cotas, o Free pode bloquear operações;
+não há contratação automática de plano pago neste projeto. A redução de fotos
+ajuda a economizar espaço, mas o armazenamento não é ilimitado.
+
+Fontes oficiais: [planos](https://appwrite.io/pricing),
+[limites do Free](https://appwrite.io/docs/advanced/billing/free),
+[execuções](https://appwrite.io/docs/products/functions/execute) e
+[tokens de arquivo](https://appwrite.io/docs/products/storage/file-tokens).

@@ -6,7 +6,7 @@ const adminData={profile:{id:'test-admin',role:'admin',name:'Administrador de te
 async function page(file,response){
  const html=fs.readFileSync(file,'utf8'),dom=new JSDOM(html,{runScripts:'outside-only',url:'https://test.invalid/'+file});const {window}=dom;
  const observers=[];const OriginalObserver=window.MutationObserver;window.MutationObserver=class extends OriginalObserver{constructor(callback){super(callback);observers.push(this);}};window.scrollTo=()=>{};window.alert=()=>{};window.confirm=()=>false;const errors=[];window.addEventListener('error',e=>errors.push(e.message));
- window.HousesFirebase={configured:true,request:async(action)=>action==='list_users'?[]:response,profile:async()=>file==='index.html'?{role:'leader',house_ids:['0119']}:response.profile,logout:async()=>{},fileBlob:async()=>new Blob(),resetPassword:async()=>{}};
+ window.HousesAppwrite={configured:true,request:async(action)=>action==='list_users'?[]:response,profile:async()=>file==='index.html'?{role:'leader',house_ids:['0119']}:response.profile,logout:async()=>{},fileBlob:async()=>new Blob(),resetPassword:async()=>{}};
  const scripts=JSON.parse(html.match(/data-scripts='([^']+)'/)[1]);
  for(const s of scripts)vm.runInContext(fs.readFileSync(s,'utf8'),dom.getInternalVMContext(),{filename:s});
  await new Promise(resolve=>setTimeout(resolve,120));return {dom,window,errors,cleanup:()=>{observers.forEach(x=>x.disconnect());dom.window.close();}};

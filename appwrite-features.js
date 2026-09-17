@@ -1,5 +1,5 @@
 (function(){
- const byId=id=>document.getElementById(id),client=window.HousesFirebase;
+ const byId=id=>document.getElementById(id),client=window.HousesAppwrite;
  const signout=byId('logout')||byId('adminLogout');if(signout){signout.removeAttribute('onclick');signout.onclick=()=>client.logout();}
  const reset=byId('resetPassword');if(reset)reset.onclick=async()=>{const email=byId('loginEmail').value,msg=byId('loginMsg');if(!email){msg.textContent='Informe seu e-mail para definir ou recuperar a senha.';return;}try{await client.resetPassword(email);msg.textContent='Confira seu e-mail para definir a senha.';}catch(e){msg.textContent=e.message;}};
  const adminForm=byId('adminLogin');if(adminForm)adminForm.onsubmit=async e=>{e.preventDefault();const msg=byId('adminLoginMsg'),btn=e.submitter;btn.disabled=true;try{const p=await client.login(byId('adminEmail').value,byId('adminPassword').value);if(!['admin','pastor'].includes(p.role))throw Error('Sua conta não tem acesso pastoral.');byId('adminPassword').value='';await load();}catch(error){msg.textContent=error.message;}finally{btn.disabled=false;}};

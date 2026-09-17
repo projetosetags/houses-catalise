@@ -1,4 +1,4 @@
-async function uploadMaterialForm(fd){return HousesFirebase.uploadMaterial(fd,pct=>{const p=document.getElementById('uploadProgress');if(p)p.textContent='Enviando: '+pct+'%';});}
+async function uploadMaterialForm(fd){return HousesAppwrite.uploadMaterial(fd,pct=>{const p=document.getElementById('uploadProgress');if(p)p.textContent='Enviando: '+pct+'%';});}
 function setupWeeklyUpload(){
   const form=document.getElementById('weeklyMaterialForm');
   if(!form)return;
@@ -72,7 +72,7 @@ function renderPastoralWeek(){
 function setDefaultWeekStart(){const field=document.getElementById('weeklyMaterialWeek');if(field&&!field.value)field.value=dateISO(sundayOfWeek())}
 setupWeeklyUpload();decorateExistingMaterials();renderPastoralWeek();setDefaultWeekStart();
 
-/* Redes pastorais: exibe os cadastros criados na implantação do Firebase. */
+/* Redes pastorais: exibe os cadastros criados na implantação do Appwrite. */
 function pastoralNetworkNumber(name){const m=String(name||'').match(/(\d+)/);return m?Number(m[1]):999}
 function pastoralUniqueLeaders(list){const seen=new Set();return list.filter(v=>{const k=String(v||'').trim().toLocaleLowerCase('pt-BR');if(!k||seen.has(k))return false;seen.add(k);return true})}
 function installPastoralNetworkStyles(){
