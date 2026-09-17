@@ -1,5 +1,6 @@
-import { Client, TablesDB, Storage, Query, ID, InputFile } from 'node-appwrite';
-import { createHash } from 'node:crypto';
+const { Client, TablesDB, Storage, Query, ID } = require('node-appwrite');
+const { InputFile } = require('node-appwrite/file');
+const { createHash } = require('node:crypto');
 
 const DB='houses_catalise';
 const BUCKET='houses_files';
@@ -68,7 +69,7 @@ async function action(s,b){
   }
 }
 
-export default async ({req,res,log,error})=>{
+module.exports=async ({req,res,log,error})=>{
   try{
     const s=services(req),body=req.bodyJson||{};if(!(await authorized(s.tables,req,body)))return res.json({error:'Acesso não autorizado'},401);
     if(req.method==='GET')return res.json(await snapshot(s));
