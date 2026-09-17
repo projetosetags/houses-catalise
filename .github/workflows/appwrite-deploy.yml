@@ -41,7 +41,15 @@ jobs:
         run: appwrite push buckets --all --force
 
       - name: Deploy two backend functions
-        run: appwrite push functions --all --force
+        shell: bash
+        run: |
+          set -o pipefail
+          OUTPUT="$(appwrite push functions --all --force 2>&1)"
+          printf '%s\n' "$OUTPUT"
+          if printf '%s\n' "$OUTPUT" | grep -Eq 'Failed to push function|No functions were pushed|✗ Error'; then
+            echo 'Function deployment failed.'
+            exit 1
+          fi
 
       - name: Seed initial configuration
         env:
