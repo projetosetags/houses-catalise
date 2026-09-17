@@ -1,0 +1,7 @@
+{
+  "name": "houses-backend",
+  "private": true,
+  "main": "index.cjs",
+  "engines": {"node": "22"},
+  "dependencies": {"firebase-admin": "14.4.0", "firebase-functions": "7.4.0"}
+}
