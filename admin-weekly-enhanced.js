@@ -39,7 +39,7 @@
         card.classList.add('published-communication');
         const list=(typeof data!=='undefined'&&data?.communications)||[];const c=list[i];
         const p=card.querySelector('p');
-        if(p&&c&&!p.querySelector('.admin-comm-date')){const d=iso2br(c.ends_on)||'--/--/--';p.innerHTML=`<span class="admin-comm-date">${d}</span><span class="admin-comm-subject">${stripDate(c.message)}</span>`;p.classList.add('admin-comm-row')}
+        if(p&&c&&!p.querySelector('.admin-comm-date')){const d=iso2br(c.ends_on)||'--/--/--';p.innerHTML=`<span class="admin-comm-date">${d}</span><span class="admin-comm-subject">${esc(stripDate(c.message))}</span>`;p.classList.add('admin-comm-row')}
         const del=card.querySelector('.js-delete-comm');
         if(del&&!del.classList.contains('windows-close')){del.textContent='×';del.title='Excluir anúncio';del.setAttribute('aria-label','Excluir anúncio');del.classList.add('windows-close');const actions=del.closest('.admin-actions');card.appendChild(del);if(actions&&!actions.children.length)actions.remove()}
       });

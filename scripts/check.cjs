@@ -1,0 +1,6 @@
+const fs=require('node:fs'),cp=require('node:child_process'),path=require('node:path');
+const files=fs.readdirSync('.').filter(x=>x.endsWith('.js')).concat(fs.readdirSync('functions').filter(x=>x.endsWith('.cjs')).map(x=>'functions/'+x),fs.readdirSync('scripts').filter(x=>x.endsWith('.cjs')).map(x=>'scripts/'+x));
+for(const f of files){const r=cp.spawnSync(process.execPath,['--check',f],{encoding:'utf8'});if(r.status){console.error(f,r.stderr.slice(-1200));process.exit(1);}}
+for(const f of ['index.html','admin.html','recuperar.html']){const html=fs.readFileSync(f,'utf8'),refs=[...html.matchAll(/(?:src|href)="([^"#]+)"/g)].map(x=>x[1]);for(const ref of refs){if(!ref.startsWith('http')&&!fs.existsSync(ref.split('?')[0]))throw Error(f+': missing '+ref);}const match=html.match(/data-scripts='([^']+)'/),scripts=match?JSON.parse(match[1]):[];for(const script of scripts)if(!fs.existsSync(script))throw Error('Missing '+script);}
+for(const f of files.filter(f=>f!=='scripts/check.cjs')){if(/supabase\.co|pastoral-api|firebase-admin|firebase-functions|gstatic\.com\/firebasejs|readAsDataURL/.test(fs.readFileSync(f,'utf8')))throw Error('Legacy backend remains: '+f);}
+console.log('Syntax, asset references and backend migration checks passed.');

@@ -1,0 +1,12 @@
+{
+  "name": "houses-backend",
+  "version": "3.0.0",
+  "private": true,
+  "main": "index.cjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "node-appwrite": "29.0.0"
+  }
+}

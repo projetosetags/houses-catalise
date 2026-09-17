@@ -1,10 +1,4 @@
-const MATERIAL_UPLOAD_API='https://zvutbyenkkaqyzgmhwew.supabase.co/functions/v1/material-upload';
-async function uploadMaterialForm(fd){
-  const r=await fetch(`${MATERIAL_UPLOAD_API}?token=${encodeURIComponent(token||'')}`,{method:'POST',body:fd});
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok)throw Error(j.error||'Erro ao enviar arquivo');
-  return j;
-}
+async function uploadMaterialForm(fd){return HousesAppwrite.uploadMaterial(fd,pct=>{const p=document.getElementById('uploadProgress');if(p)p.textContent='Enviando: '+pct+'%';});}
 function setupWeeklyUpload(){
   const form=document.getElementById('weeklyMaterialForm');
   if(!form)return;
@@ -78,7 +72,7 @@ function renderPastoralWeek(){
 function setDefaultWeekStart(){const field=document.getElementById('weeklyMaterialWeek');if(field&&!field.value)field.value=dateISO(sundayOfWeek())}
 setupWeeklyUpload();decorateExistingMaterials();renderPastoralWeek();setDefaultWeekStart();
 
-/* Redes pastorais: cria Redes 01, 02 e 03 quando ausentes e exibe líderes em lista suspensa. */
+/* Redes pastorais: exibe os cadastros criados na implantação do Appwrite. */
 function pastoralNetworkNumber(name){const m=String(name||'').match(/(\d+)/);return m?Number(m[1]):999}
 function pastoralUniqueLeaders(list){const seen=new Set();return list.filter(v=>{const k=String(v||'').trim().toLocaleLowerCase('pt-BR');if(!k||seen.has(k))return false;seen.add(k);return true})}
 function installPastoralNetworkStyles(){
@@ -121,22 +115,7 @@ function renderPastoralNetworks(snapshot=data){
     return `<details class="network-accordion"><summary><span class="network-summary-main"><b>${esc(n.name)}</b><small>${nh.length} ${nh.length===1?'House':'Houses'} • regularidade ${metric.regularity_pct||0}%</small></span><span class="network-chevron">⌄</span></summary><div class="network-accordion-body"><div class="network-leaders-title">Líderes vinculados</div>${rows||'<div class="network-leaders-blank"></div>'}</div></details>`;
   }).join('')||'<div class="card">Nenhuma Rede.</div>';
 }
-async function ensurePastoralNetworks(){
-  if(!token)return;
-  try{
-    const r=await fetch(`${API}?token=${encodeURIComponent(token)}&t=${Date.now()}`,{cache:'no-store'});if(!r.ok)return;
-    let snapshot=await r.json();
-    const existingNumbers=new Set((snapshot.networks||[]).map(n=>pastoralNetworkNumber(n.name)));
-    let created=false;
-    for(const num of [1,2,3]){
-      if(existingNumbers.has(num))continue;
-      await post({action:'create_network',name:`Rede ${String(num).padStart(2,'0')}`,leader_name:'',coordinator_name:''});
-      created=true;
-    }
-    if(created){await load();snapshot=data}
-    renderPastoralNetworks(snapshot);
-  }catch(err){console.warn('Redes pastorais:',err)}
-}
+async function ensurePastoralNetworks(){if(data)renderPastoralNetworks(data);}
 const pastoralNetworkRoot=document.getElementById('networkList');
 if(pastoralNetworkRoot)new MutationObserver(()=>{if(data&&!pastoralNetworkRoot.querySelector('.network-accordion'))setTimeout(()=>renderPastoralNetworks(data),0)}).observe(pastoralNetworkRoot,{childList:true});
 document.addEventListener('click',e=>{if(e.target.closest('.tab[data-tab="networks"]'))setTimeout(()=>renderPastoralNetworks(data),60)});
