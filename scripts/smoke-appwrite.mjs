@@ -27,10 +27,8 @@ async function ensureWebPlatform(){
     const body=await create.text();
     assert(create.ok,`Não foi possível criar plataforma web dedicada: HTTP ${create.status} ${body.slice(0,500)}`);
     console.log(`DIAG: plataforma web dedicada criada: ${hostname}`);
-  }else{
-    throw new Error(`Não foi possível consultar plataforma web: HTTP ${get.status} ${getText.slice(0,500)}`);
-  }
-  await sleep(1800);
+  }else throw new Error(`Não foi possível consultar plataforma web: HTTP ${get.status} ${getText.slice(0,500)}`);
+  await sleep(1200);
 }
 
 async function inspectFunction(functionId){
@@ -42,9 +40,17 @@ async function inspectFunction(functionId){
   console.log(`DIAG: function ${functionId}:`,{id:f.$id||f.id,name:f.name,execute:f.execute,enabled:f.enabled,deploymentId:f.deploymentId,scopes:f.scopes});
 }
 
+async function executionDetails(functionId,executionId){
+  if(!apiKey||!executionId)return null;
+  const r=await fetch(`${endpoint}/functions/${functionId}/executions/${executionId}`,{headers:adminHeaders()});
+  const text=await r.text();
+  console.log(`DIAG: execution detail ${executionId}: HTTP ${r.status}; ${text.slice(0,4000)}`);
+  if(!r.ok)return null;
+  try{return JSON.parse(text)}catch{return null}
+}
+
 async function preflight(functionId){
-  const url=`${endpoint}/functions/${functionId}/executions`;
-  const r=await fetch(url,{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type,x-appwrite-project,x-appwrite-response-format'}});
+  const r=await fetch(`${endpoint}/functions/${functionId}/executions`,{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type,x-appwrite-project,x-appwrite-response-format'}});
   const allow=r.headers.get('access-control-allow-origin')||'';
   console.log(`DIAG: preflight ${functionId}: HTTP ${r.status}; allow-origin=${allow||'ausente'}`);
   assert(r.ok||r.status===204,`CORS preflight falhou: HTTP ${r.status}`);
@@ -59,13 +65,17 @@ async function execute(functionId,path){
   });
   const allow=r.headers.get('access-control-allow-origin')||'';
   const text=await r.text();
-  console.log(`DIAG: POST ${functionId}: HTTP ${r.status}; allow-origin=${allow||'ausente'}; body=${text.slice(0,1200)}`);
+  console.log(`DIAG: POST ${functionId}: HTTP ${r.status}; allow-origin=${allow||'ausente'}; body=${text.slice(0,1600)}`);
   let execution={};try{execution=JSON.parse(text)}catch{}
   assert(r.ok,`${functionId}: execução não criada: ${execution.message||r.status}`);
   assert(allow===origin||allow==='*',`Resposta sem CORS para ${functionId} (allow-origin=${allow||'ausente'})`);
   const status=Number(execution.responseStatusCode)||0;
   let data={};try{data=JSON.parse(execution.responseBody||'{}')}catch{}
-  assert(status>=200&&status<300,`${functionId}: API respondeu ${status}: ${data.error||execution.responseBody||''}`);
+  if(status<200||status>=300){
+    const detail=await executionDetails(functionId,execution.$id);
+    const extra=detail?.errors||detail?.logs||execution.errors||'';
+    throw new Error(`${functionId}: API respondeu ${status}: ${data.error||execution.responseBody||extra||'sem detalhe'}`);
+  }
   return data;
 }
 
