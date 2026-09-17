@@ -1,5 +1,11 @@
 # Houses Catalise — Firebase
 
+**Restrição de implantação (17/09/2026): somente planos gratuitos.** O plano Blaze
+não foi autorizado. Esta branch contém a proposta inicial com Storage e Cloud
+Functions, que depende de Blaze e não deve ser implantada nem integrada à `main`
+nessa forma. O Firebase permanece no Spark. Uma alternativa gratuita está em
+avaliação; nenhum novo provedor foi contratado ou configurado.
+
 House Líderes e Houses Pastores compartilham o projeto Firebase `houses-catalise`.
 O frontend estático mantém os endereços `index.html`, `admin.html` e `pastores/`.
 
@@ -33,7 +39,10 @@ O administrador cadastra e-mail e vínculos em **Acessos**; o usuário define su
 senha pela opção **Definir ou recuperar senha**. Arquivos são lidos com a sessão
 autenticada, sem links públicos permanentes.
 
-## Implantação
+## Referência da implantação original — suspensa
+
+Os passos abaixo documentam a proposta original e não estão autorizados para
+execução enquanto incluírem recursos que exigem faturamento.
 
 1. Ativar Blaze e vincular faturamento para Storage e Functions.
 2. Criar Firestore em modo nativo/produção, registrar o app web e habilitar
@@ -85,9 +94,9 @@ endereços, redes, relatórios, semáforo e cuidado pastoral.
 - Domínio `projetosetags.github.io` autorizado no Firebase Authentication.
 - Redes 01 a 04 cadastradas no Firestore. A carga das 25 Houses está preparada.
 - Migração de código e testes locais concluídos; não publicados em produção.
-- Storage e Functions aguardam ativação do plano Blaze. A seleção do plano foi
-  bloqueada pela revisão automática por exigir autorização explícita de cobrança;
-  o projeto permanece no Spark.
+- O usuário recusou a ativação do Blaze. Storage e Functions da proposta original
+  não serão implantados; o projeto permanece no Spark e a solução deve ser
+  adaptada para planos gratuitos.
 - A conexão do GitHub foi corrigida para a conta `projetosetags`, com acesso
   de escrita confirmado ao repositório `projetosetags/houses-catalise`.
 
