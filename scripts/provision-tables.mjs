@@ -37,6 +37,15 @@ async function waitUntilDeleted(databaseId, tableId) {
   throw new Error(`A tabela ${tableId} não terminou de ser removida a tempo.`);
 }
 
+function normalizeIndex(index) {
+  const attributes = Array.isArray(index.attributes) ? index.attributes : [];
+  const suppliedOrders = Array.isArray(index.orders) ? index.orders : [];
+  const orders = suppliedOrders.length === attributes.length
+    ? suppliedOrders
+    : attributes.map(() => 'ASC');
+  return { ...index, attributes, orders };
+}
+
 for (const database of config.tablesDB || []) {
   const databaseId = database.$id;
   let current = await maybe(() => tablesDB.get({ databaseId }));
@@ -86,7 +95,7 @@ for (const table of config.tables || []) {
 
   if (!current) {
     const columns = (table.columns || []).map(column => ({ ...column }));
-    const indexes = (table.indexes || []).map(index => ({ ...index }));
+    const indexes = (table.indexes || []).map(normalizeIndex);
 
     console.log(`Criando tabela ${table.name} (${tableId}) com ${columns.length} colunas...`);
     await tablesDB.createTable({
