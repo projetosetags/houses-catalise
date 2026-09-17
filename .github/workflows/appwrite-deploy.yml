@@ -2,6 +2,14 @@ name: Deploy Appwrite - Houses Catalise
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/**'
+      - 'appwrite.config.json'
+      - 'scripts/provision-tables.mjs'
+      - 'scripts/seed-appwrite.mjs'
+      - '.github/workflows/appwrite-deploy.yml'
 
 permissions:
   contents: read
@@ -58,3 +66,8 @@ jobs:
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
           HOUSES_ADMIN_TOKEN: ${{ secrets.HOUSES_ADMIN_TOKEN }}
         run: node scripts/seed-appwrite.mjs
+
+      - name: Smoke Appwrite after deploy
+        env:
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: node scripts/smoke-appwrite.mjs
