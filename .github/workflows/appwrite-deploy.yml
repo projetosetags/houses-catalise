@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Appwrite CLI and seed dependency
+      - name: Install Appwrite CLI and SDK
         run: |
           npm install -g appwrite-cli@latest
           npm install --no-save node-appwrite@latest
@@ -30,8 +30,12 @@ jobs:
           test -n "$APPWRITE_API_KEY" || (echo "Missing APPWRITE_API_KEY" && exit 1)
           appwrite client --endpoint "https://fra.cloud.appwrite.io/v1" --project-id "6aabcd0b000c5d1298ab" --key "$APPWRITE_API_KEY"
 
-      - name: Deploy database schema
-        run: appwrite push tables --all --force
+      - name: Deploy database schema with TablesDB API
+        env:
+          APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
+          APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: node scripts/provision-tables.mjs
 
       - name: Deploy private storage bucket
         run: appwrite push buckets --all --force
