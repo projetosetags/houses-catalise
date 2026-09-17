@@ -1,6 +1,186 @@
 {
   "projectId": "6aabcd0b000c5d1298ab",
   "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "tablesDB": [
+    {
+      "$id": "houses_catalise",
+      "name": "Houses Catalise",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "networks",
+      "databaseId": "houses_catalise",
+      "name": "Redes",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"name","type":"varchar","size":120,"required":true,"array":false},
+        {"key":"leader_name","type":"varchar","size":160,"required":false,"array":false},
+        {"key":"coordinator_name","type":"varchar","size":160,"required":false,"array":false},
+        {"key":"active","type":"boolean","required":false,"array":false,"default":true}
+      ],
+      "indexes": [
+        {"key":"idx_network_name","type":"unique","attributes":["name"],"orders":[]}
+      ]
+    },
+    {
+      "$id": "houses",
+      "databaseId": "houses_catalise",
+      "name": "Houses",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"code","type":"varchar","size":4,"required":true,"array":false},
+        {"key":"name","type":"varchar","size":160,"required":true,"array":false},
+        {"key":"network_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"leader_names","type":"varchar","size":160,"required":false,"array":true},
+        {"key":"leader_full_names","type":"varchar","size":200,"required":false,"array":true},
+        {"key":"address_line","type":"varchar","size":255,"required":false,"array":false},
+        {"key":"neighborhood","type":"varchar","size":120,"required":false,"array":false},
+        {"key":"city","type":"varchar","size":120,"required":false,"array":false},
+        {"key":"state","type":"varchar","size":2,"required":false,"array":false},
+        {"key":"postal_code","type":"varchar","size":12,"required":false,"array":false},
+        {"key":"meeting_day","type":"integer","required":false,"array":false,"min":0,"max":6},
+        {"key":"meeting_time","type":"varchar","size":5,"required":false,"array":false},
+        {"key":"vision","type":"text","required":false,"array":false},
+        {"key":"active","type":"boolean","required":false,"array":false,"default":true}
+      ],
+      "indexes": [
+        {"key":"idx_house_code","type":"unique","attributes":["code"],"orders":[]},
+        {"key":"idx_house_network","type":"key","attributes":["network_id"],"orders":[]}
+      ]
+    },
+    {
+      "$id": "meeting_reports",
+      "databaseId": "houses_catalise",
+      "name": "Registros das Reunioes",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"house_id","type":"varchar","size":36,"required":true,"array":false},
+        {"key":"meeting_date","type":"varchar","size":10,"required":true,"array":false},
+        {"key":"status","type":"varchar","size":20,"required":true,"array":false},
+        {"key":"attendance_total","type":"integer","required":false,"array":false,"default":0},
+        {"key":"first_time","type":"integer","required":false,"array":false,"default":0},
+        {"key":"children","type":"integer","required":false,"array":false,"default":0},
+        {"key":"decisions_for_jesus","type":"integer","required":false,"array":false,"default":0},
+        {"key":"cancellation_reason","type":"varchar","size":255,"required":false,"array":false},
+        {"key":"leader_message","type":"text","required":false,"array":false},
+        {"key":"notes","type":"text","required":false,"array":false},
+        {"key":"photo_file_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"photo_name","type":"varchar","size":255,"required":false,"array":false},
+        {"key":"care_status","type":"varchar","size":30,"required":false,"array":false,"default":"novo"},
+        {"key":"pastoral_response","type":"text","required":false,"array":false}
+      ],
+      "indexes": [
+        {"key":"idx_reports_house","type":"key","attributes":["house_id"],"orders":[]},
+        {"key":"idx_reports_date","type":"key","attributes":["meeting_date"],"orders":[]}
+      ]
+    },
+    {
+      "$id": "communications",
+      "databaseId": "houses_catalise",
+      "name": "Comunicacoes",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"title","type":"varchar","size":255,"required":true,"array":false},
+        {"key":"message","type":"text","required":true,"array":false},
+        {"key":"starts_on","type":"varchar","size":10,"required":false,"array":false},
+        {"key":"ends_on","type":"varchar","size":10,"required":false,"array":false},
+        {"key":"network_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"house_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"priority","type":"integer","required":false,"array":false,"default":0},
+        {"key":"active","type":"boolean","required":false,"array":false,"default":true}
+      ],
+      "indexes": [
+        {"key":"idx_comm_network","type":"key","attributes":["network_id"],"orders":[]},
+        {"key":"idx_comm_house","type":"key","attributes":["house_id"],"orders":[]}
+      ]
+    },
+    {
+      "$id": "materials",
+      "databaseId": "houses_catalise",
+      "name": "Materiais Semanais",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"title","type":"varchar","size":255,"required":true,"array":false},
+        {"key":"description","type":"text","required":false,"array":false},
+        {"key":"week_start","type":"varchar","size":10,"required":false,"array":false},
+        {"key":"category","type":"varchar","size":30,"required":false,"array":false,"default":"principal"},
+        {"key":"file_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"file_name","type":"varchar","size":255,"required":false,"array":false},
+        {"key":"mime_type","type":"varchar","size":120,"required":false,"array":false},
+        {"key":"allow_download","type":"boolean","required":false,"array":false,"default":true},
+        {"key":"personalization_mode","type":"varchar","size":20,"required":false,"array":false,"default":"none"},
+        {"key":"audience","type":"varchar","size":30,"required":false,"array":false,"default":"leaders"},
+        {"key":"network_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"house_id","type":"varchar","size":36,"required":false,"array":false},
+        {"key":"license_note","type":"text","required":false,"array":false},
+        {"key":"active","type":"boolean","required":false,"array":false,"default":true}
+      ],
+      "indexes": [
+        {"key":"idx_material_network","type":"key","attributes":["network_id"],"orders":[]},
+        {"key":"idx_material_house","type":"key","attributes":["house_id"],"orders":[]},
+        {"key":"idx_material_week","type":"key","attributes":["week_start"],"orders":[]}
+      ]
+    },
+    {
+      "$id": "admin_access",
+      "databaseId": "houses_catalise",
+      "name": "Acesso Pastoral",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"label","type":"varchar","size":120,"required":true,"array":false},
+        {"key":"token_hash","type":"varchar","size":64,"required":true,"array":false},
+        {"key":"active","type":"boolean","required":false,"array":false,"default":true}
+      ],
+      "indexes": [
+        {"key":"idx_admin_hash","type":"unique","attributes":["token_hash"],"orders":[]}
+      ]
+    },
+    {
+      "$id": "app_config",
+      "databaseId": "houses_catalise",
+      "name": "Configuracao do Aplicativo",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        {"key":"church_name","type":"varchar","size":160,"required":true,"array":false},
+        {"key":"slogan","type":"varchar","size":255,"required":false,"array":false},
+        {"key":"purpose_text","type":"varchar","size":255,"required":false,"array":false},
+        {"key":"verse_text","type":"text","required":false,"array":false},
+        {"key":"verse_ref","type":"varchar","size":80,"required":false,"array":false},
+        {"key":"active","type":"boolean","required":false,"array":false,"default":true}
+      ],
+      "indexes": []
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "houses_files",
+      "$permissions": [],
+      "fileSecurity": false,
+      "name": "Arquivos Houses",
+      "enabled": true,
+      "maximumFileSize": 20971520,
+      "allowedFileExtensions": ["pdf","jpg","jpeg","png","webp"],
+      "compression": "none",
+      "encryption": true,
+      "antivirus": true
+    }
+  ],
   "functions": [
     {
       "$id": "houses-api",
@@ -15,7 +195,7 @@
       "entrypoint": "src/main.js",
       "commands": "npm install",
       "path": "functions/houses-api",
-      "scopes": ["databases.read", "tables.read", "rows.read", "rows.write", "buckets.read", "files.read", "files.write"]
+      "scopes": ["databases.read","tables.read","rows.read","rows.write","buckets.read","files.read","files.write","tokens.write"]
     },
     {
       "$id": "pastoral-api",
@@ -30,7 +210,7 @@
       "entrypoint": "src/main.js",
       "commands": "npm install",
       "path": "functions/pastoral-api",
-      "scopes": ["databases.read", "tables.read", "rows.read", "rows.write", "buckets.read", "files.read", "files.write"]
+      "scopes": ["databases.read","tables.read","rows.read","rows.write","buckets.read","files.read","files.write","tokens.write"]
     }
   ]
 }
