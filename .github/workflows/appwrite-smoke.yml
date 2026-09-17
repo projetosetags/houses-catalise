@@ -27,4 +27,6 @@ jobs:
         with:
           node-version: '22'
       - name: Test Appwrite public execution and CORS
+        env:
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: node scripts/smoke-appwrite.mjs
