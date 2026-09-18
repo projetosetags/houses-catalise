@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#16191d"/>
+    <stop offset="0.42" stop-color="#292217"/>
+    <stop offset="0.72" stop-color="#101417"/>
+    <stop offset="1" stop-color="#050708"/>
+  </linearGradient>
+  <radialGradient id="gold" cx="50%" cy="20%" r="60%">
+    <stop offset="0" stop-color="#f7d78a" stop-opacity=".56"/>
+    <stop offset=".32" stop-color="#c6923b" stop-opacity=".22"/>
+    <stop offset="1" stop-color="#c6923b" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="blue" cx="85%" cy="34%" r="46%">
+    <stop offset="0" stop-color="#5d7285" stop-opacity=".2"/>
+    <stop offset="1" stop-color="#5d7285" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="ray" x1=".5" y1="0" x2=".5" y2="1">
+    <stop offset="0" stop-color="#fff1bf" stop-opacity=".24"/>
+    <stop offset="1" stop-color="#e6bd68" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="24"/></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+
+<rect width="1080" height="1920" fill="url(#bg)"/>
+<rect width="1080" height="1920" fill="url(#gold)"/>
+<rect width="1080" height="1920" fill="url(#blue)"/>
+
+<!-- luz de palco / atmosfera -->
+<path d="M395 0 L510 0 L710 1180 L455 1180 Z" fill="url(#ray)" opacity=".48"/>
+<path d="M570 0 L650 0 L850 1160 L650 1160 Z" fill="url(#ray)" opacity=".25"/>
+<ellipse cx="530" cy="280" rx="300" ry="180" fill="#f5d78f" opacity=".08" filter="url(#blur)"/>
+<circle cx="170" cy="390" r="44" fill="#f2c56d" opacity=".14" filter="url(#soft)"/>
+<circle cx="905" cy="330" r="52" fill="#d4b067" opacity=".1" filter="url(#soft)"/>
+<circle cx="850" cy="650" r="30" fill="#8da2b3" opacity=".08" filter="url(#soft)"/>
+<circle cx="245" cy="720" r="28" fill="#e0ba70" opacity=".1" filter="url(#soft)"/>
+
+<!-- cruz discreta iluminada -->
+<g opacity=".34" filter="url(#soft)">
+  <rect x="515" y="360" width="48" height="305" rx="6" fill="#f7dfa0"/>
+  <rect x="430" y="445" width="220" height="48" rx="6" fill="#f7dfa0"/>
+</g>
+<g opacity=".22">
+  <rect x="526" y="372" width="26" height="280" rx="3" fill="#fff5d2"/>
+  <rect x="444" y="456" width="192" height="26" rx="3" fill="#fff5d2"/>
+</g>
+
+<!-- palco -->
+<path d="M0 1265 C170 1210 330 1200 540 1245 C760 1295 930 1280 1080 1228 V1920 H0 Z" fill="#060809" opacity=".96"/>
+<path d="M0 1365 C190 1290 340 1325 510 1385 C710 1455 900 1430 1080 1350 V1920 H0 Z" fill="#030506"/>
+
+<!-- multidão / culto -->
+<g fill="#0a0c0e">
+  <ellipse cx="95" cy="1388" rx="54" ry="62"/><path d="M40 1515 Q95 1450 150 1515 L175 1920 H18 Z"/>
+  <ellipse cx="230" cy="1430" rx="50" ry="58"/><path d="M176 1538 Q230 1480 284 1538 L315 1920 H150 Z"/>
+  <ellipse cx="385" cy="1397" rx="55" ry="64"/><path d="M324 1515 Q385 1452 446 1515 L470 1920 H300 Z"/>
+  <ellipse cx="555" cy="1444" rx="52" ry="60"/><path d="M498 1550 Q555 1488 612 1550 L640 1920 H468 Z"/>
+  <ellipse cx="720" cy="1394" rx="56" ry="64"/><path d="M658 1510 Q720 1446 782 1510 L812 1920 H625 Z"/>
+  <ellipse cx="900" cy="1433" rx="53" ry="61"/><path d="M842 1540 Q900 1476 958 1540 L995 1920 H810 Z"/>
+  <ellipse cx="1045" cy="1390" rx="47" ry="58"/><path d="M996 1500 Q1045 1448 1090 1505 L1105 1920 H965 Z"/>
+</g>
+
+<!-- braços levantados -->
+<g stroke="#090b0d" stroke-width="34" stroke-linecap="round" fill="none">
+  <path d="M105 1515 C72 1415 50 1332 22 1255"/>
+  <path d="M375 1515 C340 1415 325 1325 300 1240"/>
+  <path d="M735 1508 C770 1404 795 1318 835 1232"/>
+  <path d="M910 1540 C950 1448 985 1360 1040 1288"/>
+</g>
+<g fill="#0a0c0e">
+  <circle cx="20" cy="1243" r="19"/><circle cx="295" cy="1228" r="19"/><circle cx="843" cy="1219" r="19"/><circle cx="1048" cy="1278" r="19"/>
+</g>
+
+<!-- textura sutil -->
+<g opacity=".07" stroke="#f2d28a" stroke-width="2">
+  <path d="M0 985 H1080"/><path d="M0 1085 H1080"/><path d="M0 1185 H1080"/>
+</g>
+<rect x="38" y="38" width="1004" height="1844" rx="54" fill="none" stroke="#e7c778" stroke-opacity=".10" stroke-width="2"/>
+</svg>
