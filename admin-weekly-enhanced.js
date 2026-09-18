@@ -4,6 +4,9 @@
   const br2iso=v=>{const m=String(v||'').match(/^(\d{2})\/(\d{2})\/(\d{2})$/);if(!m)return'';return `20${m[3]}-${m[2]}-${m[1]}`};
   const iso2br=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1].slice(2)}`:''};
   const stripDate=s=>String(s||'').replace(/^\s*\d{1,2}[.\/-]\d{1,2}(?:[.\/-]\d{2,4})?\s*[-–—:]?\s*/,'').trim();
+  const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const parseEventLine=(line,fallback='')=>{const raw=String(line||'').trim();const m=raw.match(/^\s*(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?\s*(?:[|\-–—:]\s*)?(.*)$/);if(m){const dd=String(m[1]).padStart(2,'0'),mm=String(m[2]).padStart(2,'0'),yy=m[3]?String(m[3]).slice(-2):String(new Date().getFullYear()).slice(-2);return{date:`${dd}/${mm}/${yy}`,subject:(m[4]||'').trim()}}return{date:iso2br(fallback),subject:stripDate(raw)}};
+  const communicationRows=c=>{const lines=String(c?.message||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);const parsed=(lines.length?lines:['']).map(line=>parseEventLine(line,c?.ends_on||''));return parsed.filter(x=>x.date||x.subject)};
 
   function maskDate(inp){let v=inp.value.replace(/\D/g,'').slice(0,6);if(v.length>4)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);else if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);inp.value=v}
 
@@ -39,7 +42,7 @@
         card.classList.add('published-communication');
         const list=(typeof data!=='undefined'&&data?.communications)||[];const c=list[i];
         const p=card.querySelector('p');
-        if(p&&c&&!p.querySelector('.admin-comm-date')){const d=iso2br(c.ends_on)||'--/--/--';p.innerHTML=`<span class="admin-comm-date">${d}</span><span class="admin-comm-subject">${stripDate(c.message)}</span>`;p.classList.add('admin-comm-row')}
+        if(p&&c&&!p.querySelector('.admin-comm-date')){const rows=communicationRows(c);p.innerHTML=rows.map(x=>`<span class="admin-comm-row"><span class="admin-comm-date">${esc(x.date)}</span><span class="admin-comm-subject">${esc(x.subject)}</span></span>`).join('');p.classList.add('admin-comm-lines')}
         const del=card.querySelector('.js-delete-comm');
         if(del&&!del.classList.contains('windows-close')){del.textContent='×';del.title='Excluir anúncio';del.setAttribute('aria-label','Excluir anúncio');del.classList.add('windows-close');const actions=del.closest('.admin-actions');card.appendChild(del);if(actions&&!actions.children.length)actions.remove()}
       });
@@ -50,7 +53,7 @@
 
   function headings(){const form=$('#communicationForm');const card=form?.closest('.card');if(card){const h=card.querySelector('h3');if(h)h.textContent='Publicar nova comunicação';const hint=card.querySelector('.hint');if(hint)hint.textContent='Escolha a agenda, informe a data no padrão dd/mm/aa e escreva o assunto/comunicado separadamente.'}}
 
-  const style=document.createElement('style');style.textContent=`.comm-event-date-wrap{display:block;margin-bottom:10px}.comm-event-date-wrap>span{display:block;font-size:11px;font-weight:800;margin-bottom:5px;color:#cbd5e1}.comm-event-date-wrap input{font-variant-numeric:tabular-nums}.admin-comm-row{display:grid!important;grid-template-columns:72px 1fr;gap:9px;align-items:start}.admin-comm-date{font-weight:900;color:#f0c94f;font-variant-numeric:tabular-nums}.admin-comm-subject{min-width:0}@media(max-width:560px){.admin-comm-row{grid-template-columns:68px 1fr}}`;document.head.appendChild(style);
+  const style=document.createElement('style');style.textContent=`.comm-event-date-wrap{display:block;margin-bottom:10px}.comm-event-date-wrap>span{display:block;font-size:11px;font-weight:800;margin-bottom:5px;color:#cbd5e1}.comm-event-date-wrap input{font-variant-numeric:tabular-nums}.admin-comm-lines{display:grid!important;gap:5px}.admin-comm-row{display:grid!important;grid-template-columns:78px 1fr;gap:9px;align-items:start}.admin-comm-date{font-weight:900;color:#f0c94f;font-variant-numeric:tabular-nums}.admin-comm-subject{min-width:0}@media(max-width:560px){.admin-comm-row{grid-template-columns:72px 1fr}}`;document.head.appendChild(style);
 
   let applying=false;function apply(){if(applying)return;applying=true;try{buildCommunicationForm();headings();decoratePublished()}finally{applying=false}}apply();
   const observer=new MutationObserver(()=>{clearTimeout(observer._t);observer._t=setTimeout(apply,25)});const comm=$('#communicationsAdmin'),mats=$('#materialsAdmin');if(comm)observer.observe(comm,{subtree:true,childList:true});if(mats)observer.observe(mats,{subtree:true,childList:true});document.addEventListener('click',e=>{if(e.target.closest('.tab[data-tab="weekly"]'))setTimeout(apply,50)});
