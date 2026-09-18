@@ -1,4 +1,4 @@
-const { Client, TablesDB, Storage, Query, ID } = require('node-appwrite');
+const { Client, TablesDB, Storage, Tokens, Query, ID } = require('node-appwrite');
 const { InputFile } = require('node-appwrite/file');
 const { createHash } = require('node:crypto');
 
@@ -7,8 +7,10 @@ const BUCKET='houses_files';
 const T={networks:'networks',houses:'houses',reports:'meeting_reports',communications:'communications',materials:'materials',admins:'admin_access',config:'app_config'};
 
 function services(req){
-  const client=new Client().setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT).setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID).setKey(req.headers['x-appwrite-key']);
-  return {tables:new TablesDB(client),storage:new Storage(client)};
+  const endpoint=process.env.APPWRITE_FUNCTION_API_ENDPOINT;
+  const project=process.env.APPWRITE_FUNCTION_PROJECT_ID;
+  const client=new Client().setEndpoint(endpoint).setProject(project).setKey(req.headers['x-appwrite-key']);
+  return {endpoint,project,tables:new TablesDB(client),storage:new Storage(client),tokens:new Tokens(client)};
 }
 function clean(r){return r?{...r,id:r.$id}:r}
 async function listAll(tables,tableId){const r=await tables.listRows({databaseId:DB,tableId,queries:[Query.limit(5000)],total:false});return (r.rows||[]).map(clean)}
@@ -31,11 +33,22 @@ async function uploadMaterial(storage,b){
   if(!b.material_data_url)return null;const {mime,buf}=dataUrl(b.material_data_url);const name=String(b.file_name||'material.pdf').replace(/[^A-Za-z0-9._ -]/g,'_');
   const file=await storage.createFile({bucketId:BUCKET,fileId:ID.unique(),file:InputFile.fromBuffer(buf,name),permissions:[],folder:`materials/${b.week_start||'geral'}`});return {id:file.$id,name,mime};
 }
+async function signedPhoto(r,s){
+  if(!r?.photo_file_id)return {...r,photo_url:null};
+  try{
+    const expire=new Date(Date.now()+2*60*60*1000).toISOString();
+    const tok=await s.tokens.createFileToken({bucketId:BUCKET,fileId:r.photo_file_id,expire});
+    const base=`${s.endpoint}/storage/buckets/${BUCKET}/files/${encodeURIComponent(r.photo_file_id)}`;
+    const q=`project=${encodeURIComponent(s.project)}&token=${encodeURIComponent(tok.secret)}`;
+    return {...r,photo_url:`${base}/view?${q}`};
+  }catch{return {...r,photo_url:null}}
+}
 async function snapshot(s){
   const [networks,houses0,reports0,communications,materials]=await Promise.all([listAll(s.tables,T.networks),listAll(s.tables,T.houses),listAll(s.tables,T.reports),listAll(s.tables,T.communications),listAll(s.tables,T.materials)]);
   const netMap=new Map(networks.map(n=>[n.id,n]));
   const houses=houses0.map(h=>({...h,networks:{id:h.network_id,name:netMap.get(h.network_id)?.name||''}}));const houseMap=new Map(houses.map(h=>[h.id,h]));
-  const reports=reports0.slice().sort((a,b)=>String(b.meeting_date).localeCompare(String(a.meeting_date))).map(r=>({...r,houses:houseMap.get(r.house_id)||null}));
+  const signedReports=await Promise.all(reports0.slice().sort((a,b)=>String(b.meeting_date).localeCompare(String(a.meeting_date))).map(r=>signedPhoto(r,s)));
+  const reports=signedReports.map(r=>({...r,houses:houseMap.get(r.house_id)||null}));
   const houseMetrics=houses.filter(h=>h.active!==false).map(h=>({id:h.id,code:h.code,name:h.name,network:h.networks?.name||'',leaders:h.leader_names||[],leader_full_names:h.leader_full_names||[],...reportMetrics(reports0.filter(r=>r.house_id===h.id))}));
   const activeHouses=houses.filter(h=>h.active!==false);const realized=reports0.filter(r=>r.status==='realizado');
   const totals={houses:activeHouses.length,reports:reports0.length,attendance:realized.reduce((s,r)=>s+(Number(r.attendance_total)||0),0),first_time:realized.reduce((s,r)=>s+(Number(r.first_time)||0),0),children:realized.reduce((s,r)=>s+(Number(r.children)||0),0),decisions:realized.reduce((s,r)=>s+(Number(r.decisions_for_jesus)||0),0)};
