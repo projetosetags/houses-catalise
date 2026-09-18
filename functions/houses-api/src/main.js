@@ -46,6 +46,16 @@ async function signedMaterial(m,s){
     return {...m,material_url:`${base}/view?${q}`,view_url:`${base}/view?${q}`,download_url:`${base}/download?${q}`};
   }catch{return {...m,material_url:null,view_url:null,download_url:null}}
 }
+async function signedPhoto(r,s){
+  if(!r?.photo_file_id)return {...r,photo_url:null};
+  try{
+    const expire=new Date(Date.now()+2*60*60*1000).toISOString();
+    const tok=await s.tokens.createFileToken({bucketId:BUCKET,fileId:r.photo_file_id,expire});
+    const base=`${s.endpoint}/storage/buckets/${BUCKET}/files/${encodeURIComponent(r.photo_file_id)}`;
+    const q=`project=${encodeURIComponent(s.project)}&token=${encodeURIComponent(tok.secret)}`;
+    return {...r,photo_url:`${base}/view?${q}`};
+  }catch{return {...r,photo_url:null}}
+}
 function parseDataUrl(v){
   const m=String(v||'').match(/^data:([^;]+);base64,(.+)$/s);if(!m)throw new Error('Foto inválida');
   const mime=m[1].toLowerCase();if(!['image/jpeg','image/png','image/webp'].includes(mime))throw new Error('Formato de foto não permitido');
@@ -70,12 +80,15 @@ async function housePayload(s,code){
   const h=houses.find(x=>x.code===code&&x.active!==false);if(!h)return null;
   const n=networks.find(x=>x.id===h.network_id);const hr=reports.filter(x=>x.house_id===h.id).sort((a,b)=>String(b.meeting_date).localeCompare(String(a.meeting_date)));
   const visibleMats=mats.filter(m=>m.active!==false&&(!m.network_id||m.network_id===h.network_id)&&(!m.house_id||m.house_id===h.id));
-  const materials=await Promise.all(visibleMats.map(m=>signedMaterial(m,s)));
+  const [materials,recent]=await Promise.all([
+    Promise.all(visibleMats.map(m=>signedMaterial(m,s))),
+    Promise.all(hr.slice(0,8).map(r=>signedPhoto(r,s)))
+  ]);
   return {
     config:configs.find(x=>x.active!==false)||null,
     house:{id:h.id,code:h.code,name:h.name,network:n?.name||'',leaders:h.leader_full_names?.length?h.leader_full_names:(h.leader_names||[]),vision:h.vision||''},
     house_profile:h,
-    metrics:metrics(hr),recent:hr.slice(0,8),
+    metrics:metrics(hr),recent,
     communications:comms.filter(c=>isVisible(c,h)).sort((a,b)=>(b.priority||0)-(a.priority||0)),
     materials
   };
@@ -102,11 +115,19 @@ module.exports=async ({req,res,log,error})=>{
         photo_file_id:photo?.id||existing?.photo_file_id||null,photo_name:photo?.name||existing?.photo_name||null,care_status:existing?.care_status||'novo',pastoral_response:existing?.pastoral_response||null
       };
       let row;
-      if(existing){
-        if(photo&&existing.photo_file_id){try{await s.storage.deleteFile({bucketId:BUCKET,fileId:existing.photo_file_id})}catch{}}
-        row=await s.tables.updateRow({databaseId:DB,tableId:T.reports,rowId:existing.id,data});
-      }else row=await s.tables.createRow({databaseId:DB,tableId:T.reports,rowId:ID.unique(),data});
-      log(`Registro salvo para ${house.code} em ${b.meeting_date}`);return res.json({ok:true,report:clean(row)});
+      try{
+        if(existing) row=await s.tables.updateRow({databaseId:DB,tableId:T.reports,rowId:existing.id,data});
+        else row=await s.tables.createRow({databaseId:DB,tableId:T.reports,rowId:ID.unique(),data});
+      }catch(saveError){
+        if(photo?.id){try{await s.storage.deleteFile({bucketId:BUCKET,fileId:photo.id})}catch{}}
+        throw saveError;
+      }
+      if(photo&&existing?.photo_file_id&&existing.photo_file_id!==photo.id){
+        try{await s.storage.deleteFile({bucketId:BUCKET,fileId:existing.photo_file_id})}catch{}
+      }
+      const saved=await signedPhoto(clean(row),s);
+      log(`Registro salvo para ${house.code} em ${b.meeting_date} com dados e foto persistentes`);
+      return res.json({ok:true,report:saved});
     }
     return res.json({error:'Método não permitido'},405);
   }catch(e){error(e?.stack||e?.message||String(e));return res.json({error:e?.message||'Erro interno'},500)}
