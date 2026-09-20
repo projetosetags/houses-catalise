@@ -90,21 +90,27 @@ for(const n of notices){
 }
 
 const pastors=[
-  {id:'pastor_luciana',name:'Luciana Ferreira Costa',phone:'9 9149-2104',sort_order:1},
-  {id:'pastor_mariza',name:'Mariza Ferreira',phone:null,sort_order:2},
-  {id:'pastor_marcelo',name:'Marcelo Cruz',phone:'9 9148-9910',sort_order:3},
-  {id:'pastor_andrea',name:'Andréa Cruz',phone:null,sort_order:4},
-  {id:'pastor_francine',name:'Francine Zaboti',phone:null,sort_order:5},
-  {id:'pastor_joao_marcos',name:'João Marcos da Silva',phone:null,sort_order:6},
-  {id:'pastor_luiz',name:'Luiz Sartor',phone:null,sort_order:7},
-  {id:'pastor_roselane',name:'Roselane Mota de Bem',phone:null,sort_order:8},
-  {id:'pastor_thiago',name:'Thiago Zaboti',phone:'9 9847-0596',sort_order:9}
+  {id:'pastor_luciana',name:'Luciana Ferreira Costa',phone:'9 9149-2104',role:'Pastora',sort_order:1},
+  {id:'pastor_mariza',name:'Mariza Ferreira',phone:null,role:'Pastora',sort_order:2},
+  {id:'pastor_marcelo',name:'Marcelo Cruz',phone:'9 9148-9910',role:'Pastor',sort_order:3},
+  {id:'pastor_andrea',name:'Andréa Cruz',phone:null,role:'Pastora',sort_order:4},
+  {id:'pastor_francine',name:'Francine Zaboti',phone:null,role:'Pastora',sort_order:5},
+  {id:'pastor_joao_marcos',name:'João Marcos da Silva',phone:null,role:'Pastor',sort_order:6},
+  {id:'pastor_luiz',name:'Luiz Sartor',phone:null,role:'Pastor',sort_order:7},
+  {id:'pastor_roselane',name:'Roselane Mota de Bem',phone:null,role:'Pastora',sort_order:8},
+  {id:'pastor_thiago',name:'Thiago Zaboti',phone:'9 9847-0596',role:'Pastor',sort_order:9}
 ];
 let pastorsCreated=0;
 for(const p of pastors){
   const {id,...data}=p;
-  const row=await ensure('pastoral_contacts',id,{...data,role:'Pastor(a)',active:true});
-  if(row)pastorsCreated++;
+  try{
+    await tables.createRow({databaseId:DB,tableId:'pastoral_contacts',rowId:id,data:{...data,active:true}});
+    pastorsCreated++;
+  }catch(e){
+    if(e?.code!==409)throw e;
+    // Atualiza nome/cargo/ordem sem apagar telefone que possa ter sido preenchido pelo painel.
+    await tables.updateRow({databaseId:DB,tableId:'pastoral_contacts',rowId:id,data:{name:p.name,role:p.role,sort_order:p.sort_order,active:true}});
+  }
 }
 
 await put('app_config','main',{
