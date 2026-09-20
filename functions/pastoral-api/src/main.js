@@ -4,7 +4,7 @@ const { createHash } = require('node:crypto');
 
 const DB='houses_catalise';
 const BUCKET='houses_files';
-const T={networks:'networks',houses:'houses',reports:'meeting_reports',communications:'communications',materials:'materials',admins:'admin_access',config:'app_config'};
+const T={networks:'networks',houses:'houses',reports:'meeting_reports',communications:'communications',materials:'materials',pastors:'pastoral_contacts',admins:'admin_access',config:'app_config'};
 
 function services(req){
   const endpoint=process.env.APPWRITE_FUNCTION_API_ENDPOINT;
@@ -44,7 +44,7 @@ async function signedPhoto(r,s){
   }catch{return {...r,photo_url:null}}
 }
 async function snapshot(s){
-  const [networks,houses0,reports0,communications,materials]=await Promise.all([listAll(s.tables,T.networks),listAll(s.tables,T.houses),listAll(s.tables,T.reports),listAll(s.tables,T.communications),listAll(s.tables,T.materials)]);
+  const [networks,houses0,reports0,communications,materials,pastors0]=await Promise.all([listAll(s.tables,T.networks),listAll(s.tables,T.houses),listAll(s.tables,T.reports),listAll(s.tables,T.communications),listAll(s.tables,T.materials),listAll(s.tables,T.pastors)]);
   const netMap=new Map(networks.map(n=>[n.id,n]));
   const houses=houses0.map(h=>({...h,networks:{id:h.network_id,name:netMap.get(h.network_id)?.name||''}}));const houseMap=new Map(houses.map(h=>[h.id,h]));
   const signedReports=await Promise.all(reports0.slice().sort((a,b)=>String(b.meeting_date).localeCompare(String(a.meeting_date))).map(r=>signedPhoto(r,s)));
@@ -54,7 +54,8 @@ async function snapshot(s){
   const totals={houses:activeHouses.length,reports:reports0.length,attendance:realized.reduce((s,r)=>s+(Number(r.attendance_total)||0),0),first_time:realized.reduce((s,r)=>s+(Number(r.first_time)||0),0),children:realized.reduce((s,r)=>s+(Number(r.children)||0),0),decisions:realized.reduce((s,r)=>s+(Number(r.decisions_for_jesus)||0),0)};
   const byNetwork=networks.map(n=>{const hs=activeHouses.filter(h=>h.network_id===n.id),ids=new Set(hs.map(h=>h.id)),rs=reports0.filter(r=>ids.has(r.house_id)),done=rs.filter(r=>r.status==='realizado');const possible=hs.length*8;return {id:n.id,name:n.name,houses:hs.length,regularity_pct:possible?Math.round(Math.min(100,rs.length/possible*100)):0,attendance:done.reduce((s,r)=>s+(Number(r.attendance_total)||0),0),first_time:done.reduce((s,r)=>s+(Number(r.first_time)||0),0),children:done.reduce((s,r)=>s+(Number(r.children)||0),0),decisions:done.reduce((s,r)=>s+(Number(r.decisions_for_jesus)||0),0)}});
   const care=reports.filter(r=>r.leader_message&&r.care_status!=='concluido');
-  return {networks,houses,reports,communications:communications.filter(x=>x.active!==false),materials:materials.filter(x=>x.active!==false),houseMetrics,totals,weeks:weekly(reports0),byNetwork,care};
+  const pastors=pastors0.filter(p=>p.active!==false).sort((a,b)=>(Number(a.sort_order)||100)-(Number(b.sort_order)||100)||String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
+  return {networks,houses,reports,communications:communications.filter(x=>x.active!==false),materials:materials.filter(x=>x.active!==false),pastors,houseMetrics,totals,weeks:weekly(reports0),byNetwork,care};
 }
 async function action(s,b){
   switch(b.action){
@@ -78,6 +79,13 @@ async function action(s,b){
       await s.tables.deleteRow({databaseId:DB,tableId:T.materials,rowId:b.id});return {ok:true};
     }
     case 'update_care': return clean(await s.tables.updateRow({databaseId:DB,tableId:T.reports,rowId:b.id,data:{care_status:b.status||'em_acompanhamento',pastoral_response:b.pastoral_response||null}}));
+    case 'update_pastor_contact': {
+      if(!b.id)throw Error('Pastor(a) não informado');
+      const pastors=await listAll(s.tables,T.pastors);
+      const pastor=pastors.find(p=>p.id===b.id&&p.active!==false);
+      if(!pastor)throw Error('Pastor(a) não encontrado');
+      return clean(await s.tables.updateRow({databaseId:DB,tableId:T.pastors,rowId:b.id,data:{phone:String(b.phone||'').trim()||null}}));
+    }
     default: throw Error('Ação não reconhecida');
   }
 }
