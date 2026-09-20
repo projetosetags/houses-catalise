@@ -3,8 +3,8 @@
   function addStyle(href,id){if(document.getElementById(id))return;const l=document.createElement('link');l.id=id;l.rel='stylesheet';l.href=href;document.head.appendChild(l)}
   function addScript(src,id){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;document.body.appendChild(s)}
   addStyle('admin-material-weeks.css?v=20260914-2','materialWeeksCss');
-  addStyle('admin-report-tools.css?v=20260914-1','pastoralReportCss');
-  addScript('admin-export.js?v=20260914-1','pastoralExportJs');
+  addStyle('admin-report-tools.css?v=20260920-1','pastoralReportCss');
+  addScript('admin-export.js?v=20260920-1','pastoralExportJs');
   function reorderTop(){
     const app=$('#app'),hero=app?.querySelector(':scope>.hero'),nav=app?.querySelector(':scope>nav'),kpis=app?.querySelector(':scope>.kpis');
     if(!app||!hero||!nav||!kpis)return;
