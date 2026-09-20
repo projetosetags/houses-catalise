@@ -1,15 +1,16 @@
 (()=>{const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),br=v=>v?new Date(v+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 const PASTORS=[
-  {name:'Luciana Ferreira Costa',phone:'9 9149-2104'},
-  {name:'Mariza Ferreira',phone:''},
-  {name:'Marcelo Cruz',phone:'9 9148-9910'},
-  {name:'Andréa Cruz',phone:''},
-  {name:'Francine Zaboti',phone:''},
-  {name:'João Marcos da Silva',phone:''},
-  {name:'Luiz Sartor',phone:''},
-  {name:'Roselane Mota de Bem',phone:''},
-  {name:'Thiago Zaboti',phone:'9 9847-0596'}
+  {id:'pastor_luciana',name:'Luciana Ferreira Costa',phone:'9 9149-2104',role:'Pastor(a)',sort_order:1},
+  {id:'pastor_mariza',name:'Mariza Ferreira',phone:'',role:'Pastor(a)',sort_order:2},
+  {id:'pastor_marcelo',name:'Marcelo Cruz',phone:'9 9148-9910',role:'Pastor(a)',sort_order:3},
+  {id:'pastor_andrea',name:'Andréa Cruz',phone:'',role:'Pastor(a)',sort_order:4},
+  {id:'pastor_francine',name:'Francine Zaboti',phone:'',role:'Pastor(a)',sort_order:5},
+  {id:'pastor_joao_marcos',name:'João Marcos da Silva',phone:'',role:'Pastor(a)',sort_order:6},
+  {id:'pastor_luiz',name:'Luiz Sartor',phone:'',role:'Pastor(a)',sort_order:7},
+  {id:'pastor_roselane',name:'Roselane Mota de Bem',phone:'',role:'Pastor(a)',sort_order:8},
+  {id:'pastor_thiago',name:'Thiago Zaboti',phone:'9 9847-0596',role:'Pastor(a)',sort_order:9}
 ];
+function pastors(){const live=window.data?.pastors;return Array.isArray(live)&&live.length?live.slice().sort((a,b)=>(Number(a.sort_order)||100)-(Number(b.sort_order)||100)||String(a.name||'').localeCompare(String(b.name||''),'pt-BR')):PASTORS}
 const STORE='housesPastoresReportProfileV1';
 function readSaved(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return{}}}
 function saveSaved(){
@@ -19,23 +20,39 @@ function saveSaved(){
   localStorage.setItem(STORE,JSON.stringify({name,phone,notes,phones}));
 }
 function pastorPhone(name){
+  const live=pastors().find(p=>p.name===name);
+  if(live&&live.phone!=null&&String(live.phone).trim()!=='')return String(live.phone);
   const saved=readSaved(),custom=saved.phones?.[name];
   if(custom!==undefined)return custom;
   return PASTORS.find(p=>p.name===name)?.phone||'';
+}
+async function savePastorPhone(){
+  const name=$('#repName')?.value||'',phone=$('#repPhone')?.value||'';
+  saveSaved();
+  if(!name)return;
+  const pastor=pastors().find(p=>p.name===name)||PASTORS.find(p=>p.name===name);
+  if(!pastor?.id||!window.HousesAppwrite?.pastoralPost)return;
+  const status=$('#repStatus');if(status)status.textContent='Salvando telefone…';
+  try{
+    const token=new URLSearchParams(location.search).get('token')||'';
+    await window.HousesAppwrite.pastoralPost('?token='+encodeURIComponent(token),{action:'update_pastor_contact',id:pastor.id,phone});
+    if(window.data?.pastors){const live=window.data.pastors.find(p=>p.id===pastor.id);if(live)live.phone=phone}
+    if(status)status.textContent='Telefone do Pastor(a) salvo no Appwrite.';
+  }catch(e){if(status)status.textContent='Não foi possível salvar o telefone no Appwrite agora.'}
 }
 function profile(){return{name:$('#repName')?.value||'',role:$('#repRole')?.value||'Pastor(a)',phone:$('#repPhone')?.value||'',notes:$('#repNotes')?.value||''}}
 function inject(){
   const ov=$('#overview');if(!ov||$('#pastoralReports'))return;
   const b=document.createElement('section');b.id='pastoralReports';b.className='pastoral-export';
-  b.innerHTML='<h3>Relatórios e Backup Pastoral</h3><p class="export-hint">Uso exclusivo dos pastores. Selecione o Pastor(a). O telefone pode ser preenchido ou atualizado e ficará gravado neste dispositivo.</p><div class="pastoral-export-grid"><label>Pastor(a)<select id="repName"><option value="">Selecione o Pastor(a)</option>'+PASTORS.map(p=>'<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>').join('')+'</select></label><label>Cargo<input id="repRole" value="Pastor(a)" readonly></label><label>Telefone<input id="repPhone" inputmode="tel" placeholder="Digite o telefone"></label><label class="pastoral-export-full">Observações<textarea id="repNotes"></textarea></label></div><div class="pastoral-export-actions"><button class="pastoral-pdf" id="repPdf" type="button">🖨 Imprimir / Salvar PDF</button><button class="pastoral-xlsx" id="repXlsx" type="button">⬇ Backup completo XLSX</button></div><p id="repStatus" class="pastoral-export-status"></p>';
+  b.innerHTML='<h3>Relatórios e Backup Pastoral</h3><p class="export-hint">Uso exclusivo dos pastores. Selecione o Pastor(a). Telefones preenchidos ou atualizados ficam gravados no Appwrite.</p><div class="pastoral-export-grid"><label>Pastor(a)<select id="repName"><option value="">Selecione o Pastor(a)</option>'+pastors().map(p=>'<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>').join('')+'</select></label><label>Cargo<input id="repRole" value="Pastor(a)" readonly></label><label>Telefone<input id="repPhone" inputmode="tel" placeholder="Digite o telefone"></label><label class="pastoral-export-full">Observações<textarea id="repNotes"></textarea></label></div><div class="pastoral-export-actions"><button class="pastoral-pdf" id="repPdf" type="button">🖨 Imprimir / Salvar PDF</button><button class="pastoral-xlsx" id="repXlsx" type="button">⬇ Backup completo XLSX</button></div><p id="repStatus" class="pastoral-export-status"></p>';
   ov.insertBefore(b,ov.firstChild);
   const saved=readSaved();
-  if(saved.name&&PASTORS.some(p=>p.name===saved.name))$('#repName').value=saved.name;
+  if(saved.name&&pastors().some(p=>p.name===saved.name))$('#repName').value=saved.name;
   $('#repRole').value='Pastor(a)';
   $('#repPhone').value=pastorPhone($('#repName').value);
   $('#repNotes').value=saved.notes||'';
   $('#repName').addEventListener('change',()=>{$('#repPhone').value=pastorPhone($('#repName').value);saveSaved()});
-  $('#repPhone').addEventListener('input',saveSaved);
+  $('#repPhone').addEventListener('input',saveSaved);$('#repPhone').addEventListener('change',savePastorPhone);
   $('#repNotes').addEventListener('input',saveSaved);
   $('#repPdf').onclick=()=>{saveSaved();printReport()};
   $('#repXlsx').onclick=()=>{saveSaved();backup()};
