@@ -123,7 +123,8 @@ module.exports=async ({req,res,log,error})=>{
           neighborhood:String(b.neighborhood||'').trim()||null,
           postal_code:String(b.postal_code||'').trim()||null,
           city:String(b.city||'').trim()||null,
-          state:String(b.state||'').trim().toUpperCase().slice(0,2)||null
+          state:String(b.state||'').trim().toUpperCase().slice(0,2)||null,
+          meeting_day:(String(b.meeting_day??'').match(/^[0-6]$/)?Number(b.meeting_day):null)
         };
         const updated=await s.tables.updateRow({databaseId:DB,tableId:T.houses,rowId:house.id,data:addressData});
         log(`Endereço atualizado para ${house.code}`);
