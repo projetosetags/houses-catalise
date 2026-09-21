@@ -106,6 +106,17 @@ module.exports=async ({req,res,log,error})=>{
       if(!/^\d{4}$/.test(code))return res.json({error:'ID da House inválido'},400);
       const houses=await listAll(s.tables,T.houses);const house=houses.find(x=>x.code===code&&x.active!==false);if(!house)return res.json({error:'House não encontrada'},404);
       const b=req.bodyJson||{};
+      if(b.action==='update_meeting_date'){
+        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(b.meeting_date||'')))return res.json({error:'Data inválida'},400);
+        const allReports=await listAll(s.tables,T.reports);
+        const report=allReports.find(x=>x.id===String(b.report_id||'')&&x.house_id===house.id);
+        if(!report)return res.json({error:'Registro do encontro não encontrado'},404);
+        const conflict=allReports.find(x=>x.id!==report.id&&x.house_id===house.id&&x.meeting_date===b.meeting_date);
+        if(conflict)return res.json({error:'Já existe um encontro registrado nessa data'},409);
+        const updated=await s.tables.updateRow({databaseId:DB,tableId:T.reports,rowId:report.id,data:{meeting_date:b.meeting_date}});
+        log(`Data do encontro ${report.id} alterada de ${report.meeting_date} para ${b.meeting_date}`);
+        return res.json({ok:true,report:clean(updated)});
+      }
       if(b.action==='update_address'){
         const addressData={
           address_line:String(b.address_line||'').trim()||null,
