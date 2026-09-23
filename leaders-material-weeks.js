@@ -12,14 +12,23 @@
     const cat=m.category==='kids'?'Material Kids':m.category==='principal'?'Material Principal':m.category==='lideranca'?'Liderança':'Material';
     const view=m.view_url||m.material_url,down=m.download_url||m.material_url;
     const usable=v=>!!(v&&!/^data:[^,]*;base64,$/i.test(v));
-    const hasView=usable(view),hasDown=m.allow_download&&usable(down),canPers=m.mime_type==='application/pdf'&&m.personalization_mode&&m.personalization_mode!=='none'&&hasView;
+    const hasDown=m.allow_download&&usable(down);
     const isPdf=m.mime_type==='application/pdf'||/\.pdf(?:$|\?)/i.test(String(view||''));
-    const originalActions=`${hasView?`<button type="button" class="js-material-view" data-material="${m.id}">Visualizar original</button>`:'<button disabled>Arquivo em processamento</button>'}${hasDown?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar original</button>`:''}`;
     const colorView=m.color_view_url||m.colored_pdf_url||m.color_url||'';
     const colorDown=m.color_download_url||colorView;
-    const hasColor=usable(colorView);
-    const colorPanel=isPdf?`<div class="pdf-color-panel"><div class="pdf-color-title"><b>PDF Colorido + Versículos</b><small>Padrão oficial House: página 1 colorida + versículos completos na página 2</small></div><div class="material-actions">${hasColor?`<button type="button" class="js-color-view" data-url="${esc(colorView)}">Visualizar colorido</button><button type="button" class="solid js-color-download" data-url="${esc(colorDown)}">Baixar colorido</button>`:`<button type="button" class="special js-color-pdf" data-material="${m.id}">Preparar colorido</button>`}</div><small class="js-color-status" data-material="${m.id}">${hasColor?'Versão colorida pronta.':'Aguardando a versão colorida deste Guia.'}</small></div>`:'';
-    return `<article class="material-card week-material-card"><span class="cat">${esc(cat)}</span><h3>${esc(m.title)}</h3>${m.description?`<p>${esc(m.description)}</p>`:''}${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}<div class="pdf-choice"><section class="pdf-original-panel"><b>PDF Original (P&B)</b><small>Arquivo enviado pelo Houses Pastores</small><div class="material-actions">${originalActions}</div></section>${colorPanel}</div>${canPers?`<div class="material-actions"><button class="special js-personalize" type="button" data-material="${m.id}">Baixar para minha House</button></div>`:''}</article>`;
+    const hasColor=usable(colorDown);
+    return `<article class="material-card week-material-card">
+      <span class="cat">${esc(cat)}</span>
+      <h3>${esc(m.title)}</h3>
+      ${m.description?`<p>${esc(m.description)}</p>`:''}
+      ${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}
+      <div class="material-actions leader-downloads">
+        ${hasDown?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar Original</button>`:'<button disabled>Original em processamento</button>'}
+        ${isPdf?(hasColor?`<button type="button" class="solid js-color-download" data-url="${esc(colorDown)}">Baixar Colorido</button>`:`<button type="button" class="special js-color-pdf" data-material="${m.id}">Baixar Colorido</button>`):''}
+        ${isPdf&&hasDown?`<button class="special js-personalize" type="button" data-material="${m.id}">Baixar com nome da House & Líderes</button>`:''}
+      </div>
+      ${isPdf&&!hasColor?`<small class="js-color-status" data-material="${m.id}"></small>`:''}
+    </article>`;
   }
   window.renderMaterials=function(target,list){
     const box=$(target);if(!box)return;
@@ -38,5 +47,5 @@ document.addEventListener('click',async e=>{
   const down=e.target.closest('.js-color-download');if(down){const a=document.createElement('a');a.href=down.dataset.url;a.download='';document.body.appendChild(a);a.click();a.remove();return}
   const b=e.target.closest('.js-color-pdf');if(!b)return;
   const id=b.dataset.material,status=document.querySelector('.js-color-status[data-material="'+id+'"]');
-  if(status)status.textContent='A versão colorida é publicada junto ao Guia pelo Houses Pastores.';
+  if(status)status.textContent='Colorido ainda não vinculado a este Guia.';
 });
