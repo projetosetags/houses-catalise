@@ -10,24 +10,23 @@
   function weekLabel(key){if(key==='sem-data')return 'Materiais sem período definido';const s=new Date(`${key}T12:00:00`),e=new Date(s);e.setDate(e.getDate()+6);return `Semana ${String(s.getDate()).padStart(2,'0')} a ${String(e.getDate()).padStart(2,'0')} de ${e.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}`}
   function renderCard(m){
     const cat=m.category==='kids'?'Material Kids':m.category==='principal'?'Material Principal':m.category==='lideranca'?'Liderança':'Material';
-    const view=m.view_url||m.material_url,down=m.download_url||m.material_url;
+    const current=m.download_url||m.material_url||m.view_url;
     const usable=v=>!!(v&&!/^data:[^,]*;base64,$/i.test(v));
-    const hasDown=m.allow_download&&usable(down);
-    const isPdf=m.mime_type==='application/pdf'||/\.pdf(?:$|\?)/i.test(String(view||''));
-    const colorView=m.color_view_url||m.colored_pdf_url||m.color_url||'';
-    const colorDown=m.color_download_url||colorView;
-    const hasColor=usable(colorDown);
+    const hasCurrent=m.allow_download&&usable(current);
+    const original=m.original_download_url||m.original_url||'';
+    const hasOriginal=usable(original);
+    const isPdf=m.mime_type==='application/pdf'||/\.pdf(?:$|\?)/i.test(String(current||''));
     return `<article class="material-card week-material-card">
       <span class="cat">${esc(cat)}</span>
       <h3>${esc(m.title)}</h3>
       ${m.description?`<p>${esc(m.description)}</p>`:''}
       ${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}
       <div class="material-actions leader-downloads">
-        ${hasDown?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar Original</button>`:'<button disabled>Original em processamento</button>'}
-        ${isPdf?(hasColor?`<button type="button" class="solid js-color-download" data-url="${esc(colorDown)}">Baixar Colorido</button>`:`<button type="button" class="special js-color-pdf" data-material="${m.id}">Baixar Colorido</button>`):''}
-        ${isPdf&&hasDown?`<button class="special js-personalize" type="button" data-material="${m.id}">Baixar com nome da House & Líderes</button>`:''}
+        ${hasOriginal?`<button type="button" class="solid js-direct-download" data-url="${esc(original)}">Baixar Original</button>`:`<button type="button" disabled title="O PDF P&B ainda não foi vinculado a este Guia">Baixar Original</button>`}
+        ${hasCurrent?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar Colorido</button>`:'<button disabled>Baixar Colorido</button>'}
+        ${isPdf&&hasCurrent?`<button class="special js-personalize" type="button" data-material="${m.id}">Baixar com nome da House & Líderes</button>`:''}
       </div>
-      ${isPdf&&!hasColor?`<small class="js-color-status" data-material="${m.id}"></small>`:''}
+      ${!hasOriginal?`<small class="material-hint">O arquivo publicado atualmente é o Colorido. O Original (P&B) será habilitado quando for vinculado.</small>`:''}
     </article>`;
   }
   window.renderMaterials=function(target,list){
@@ -42,10 +41,7 @@
     }).join(''):'<div class="empty-material">Nenhum material publicado.</div>';
   };
 })();
-document.addEventListener('click',async e=>{
-  const view=e.target.closest('.js-color-view');if(view){window.open(view.dataset.url,'_blank','noopener');return}
-  const down=e.target.closest('.js-color-download');if(down){const a=document.createElement('a');a.href=down.dataset.url;a.download='';document.body.appendChild(a);a.click();a.remove();return}
-  const b=e.target.closest('.js-color-pdf');if(!b)return;
-  const id=b.dataset.material,status=document.querySelector('.js-color-status[data-material="'+id+'"]');
-  if(status)status.textContent='Colorido ainda não vinculado a este Guia.';
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.js-direct-download');if(!b)return;
+  const a=document.createElement('a');a.href=b.dataset.url;a.download='';document.body.appendChild(a);a.click();a.remove();
 });
