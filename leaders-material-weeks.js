@@ -12,10 +12,13 @@
     const cat=m.category==='kids'?'Material Kids':m.category==='principal'?'Material Principal':m.category==='lideranca'?'Liderança':'Material';
     const current=m.download_url||m.material_url||m.view_url;
     const usable=v=>!!(v&&!/^data:[^,]*;base64,$/i.test(v));
-    const hasCurrent=m.allow_download&&usable(current);
-    const original=m.original_download_url||m.original_url||'';
-    const hasOriginal=usable(original);
-    const isPdf=m.mime_type==='application/pdf'||/\.pdf(?:$|\?)/i.test(String(current||''));
+    // O arquivo principal publicado pelo Pastores é sempre o ORIGINAL (P&B).
+    const original=m.original_download_url||m.original_url||current||'';
+    const hasOriginal=m.allow_download&&usable(original);
+    // O colorido só pode aparecer quando houver uma variante colorida explícita.
+    const colored=m.colored_download_url||m.colored_url||m.color_download_url||m.color_url||'';
+    const hasColored=m.allow_download&&usable(colored);
+    const isPdf=m.mime_type==='application/pdf'||/\.pdf(?:$|\?)/i.test(String(original||colored||''));
     return `<article class="material-card week-material-card">
       <span class="cat">${esc(cat)}</span>
       <h3>${esc(m.title)}</h3>
@@ -23,10 +26,10 @@
       ${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}
       <div class="material-actions leader-downloads">
         ${hasOriginal?`<button type="button" class="solid js-direct-download" data-url="${esc(original)}">Baixar Original</button>`:`<button type="button" disabled title="O PDF P&B ainda não foi vinculado a este Guia">Baixar Original</button>`}
-        ${hasCurrent?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar Colorido</button>`:'<button disabled>Baixar Colorido</button>'}
-        ${isPdf&&hasCurrent?`<button class="special js-personalize" type="button" data-material="${m.id}">Baixar com nome da House & Líderes</button>`:''}
+        ${hasColored?`<button type="button" class="solid js-direct-download" data-url="${esc(colored)}">Baixar Colorido</button>`:'<button type="button" disabled title="O PDF colorido ainda não foi vinculado a este Guia">Baixar Colorido</button>'}
+        ${isPdf&&hasColored?`<button class="special js-personalize" type="button" data-material="${m.id}" data-color-url="${esc(colored)}">Baixar com nome da House & Líderes</button>`:''}
       </div>
-      ${!hasOriginal?`<small class="material-hint">O arquivo publicado atualmente é o Colorido. O Original (P&B) será habilitado quando for vinculado.</small>`:''}
+      ${!hasColored?`<small class="material-hint">Original P&B disponível. O Colorido será habilitado somente quando a versão colorida estiver vinculada.</small>`:''}
     </article>`;
   }
   window.renderMaterials=function(target,list){
