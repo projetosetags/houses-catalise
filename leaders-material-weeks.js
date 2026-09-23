@@ -13,7 +13,10 @@
     const view=m.view_url||m.material_url,down=m.download_url||m.material_url;
     const usable=v=>!!(v&&!/^data:[^,]*;base64,$/i.test(v));
     const hasView=usable(view),hasDown=m.allow_download&&usable(down),canPers=m.mime_type==='application/pdf'&&m.personalization_mode&&m.personalization_mode!=='none'&&hasView;
-    return `<article class="material-card week-material-card"><span class="cat">${esc(cat)}</span><h3>${esc(m.title)}</h3>${m.description?`<p>${esc(m.description)}</p>`:''}${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}<div class="material-actions ${canPers?'three':''}">${hasView?`<button type="button" class="js-material-view" data-material="${m.id}">Visualizar</button>`:'<button disabled>Arquivo em processamento</button>'}${hasDown?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar</button>`:''}${canPers?`<button class="special js-personalize" type="button" data-material="${m.id}">Baixar para minha House</button>`:''}</div></article>`;
+    const isPdf=m.mime_type==='application/pdf'||/\.pdf(?:$|\?)/i.test(String(view||''));
+    const originalActions=`${hasView?`<button type="button" class="js-material-view" data-material="${m.id}">Visualizar original</button>`:'<button disabled>Arquivo em processamento</button>'}${hasDown?`<button type="button" class="solid js-material-download" data-material="${m.id}">Baixar original</button>`:''}`;
+    const colorPanel=isPdf?`<div class="pdf-color-panel"><div class="pdf-color-title"><b>PDF Colorido + Versículos</b><small>Versão preparada em cores com os versículos na 2ª página</small></div><label>Tradução dos versículos<select class="js-bible-version" data-material="${m.id}"><option value="ARA">ARA — Almeida Revista e Atualizada</option><option value="ARC">ARC — Almeida Revista e Corrigida</option><option value="NVI">NVI — Nova Versão Internacional</option><option value="NTLH">NTLH — Nova Tradução na Linguagem de Hoje</option></select></label><button type="button" class="special js-color-pdf" data-material="${m.id}">Gerar / abrir colorido</button><small class="js-color-status" data-material="${m.id}"></small></div>`:'';
+    return `<article class="material-card week-material-card"><span class="cat">${esc(cat)}</span><h3>${esc(m.title)}</h3>${m.description?`<p>${esc(m.description)}</p>`:''}${m.license_note?`<p class="material-warn">${esc(m.license_note)}</p>`:''}<div class="pdf-choice"><section class="pdf-original-panel"><b>PDF Original (P&B)</b><small>Arquivo enviado pelo Houses Pastores</small><div class="material-actions">${originalActions}</div></section>${colorPanel}</div>${canPers?`<div class="material-actions"><button class="special js-personalize" type="button" data-material="${m.id}">Baixar para minha House</button></div>`:''}</article>`;
   }
   window.renderMaterials=function(target,list){
     const box=$(target);if(!box)return;
@@ -27,3 +30,15 @@
     }).join(''):'<div class="empty-material">Nenhum material publicado.</div>';
   };
 })();
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('.js-color-pdf');if(!b)return;
+  const id=b.dataset.material,version=document.querySelector('.js-bible-version[data-material="'+id+'"]')?.value||'ARA';
+  const status=document.querySelector('.js-color-status[data-material="'+id+'"]');
+  b.disabled=true;if(status)status.textContent='Preparando versão '+version+'…';
+  try{
+    const material=(window.data?.materials||[]).find(x=>String(x.id)===String(id));
+    const ready=material?.colored_versions?.[version]||material?.colored_pdf_url;
+    if(ready){window.open(ready,'_blank','noopener');if(status)status.textContent='Versão pronta.';return;}
+    if(status)status.textContent='Versão colorida ainda não foi publicada para este Guia.';
+  }finally{b.disabled=false}
+});
