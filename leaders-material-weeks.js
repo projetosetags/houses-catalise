@@ -67,7 +67,8 @@
     const current=dateISO(currentSunday());
     box.innerHTML=keys.length?keys.map(k=>{
       const items=groups.get(k)||[],isCurrent=k===current;
-      return `<section class="leader-week-group ${isCurrent?'current-week':''}"><div class="leader-week-head"><div><strong>${weekLabel(k)}</strong><small>${isCurrent?'SEMANA ATUAL':'PERÍODO'}</small></div><span>${items.length} ${items.length===1?'material':'materiais'}</span></div><div class="leader-week-items">${items.map(renderCard).join('')}</div></section>`;
+      if(isCurrent)return `<section class="leader-week-group current-week"><div class="leader-week-head"><div><strong>${weekLabel(k)}</strong><small>SEMANA ATUAL</small></div><span>${items.length} ${items.length===1?'material':'materiais'}</span></div><div class="leader-week-items">${items.map(renderCard).join('')}</div></section>`;
+      return `<details class="leader-week-group archived-week"><summary class="leader-week-head"><div><strong>${weekLabel(k)}</strong><small>SEMANA ANTERIOR • TOQUE PARA ABRIR</small></div><span>${items.length} ${items.length===1?'material':'materiais'}</span></summary><div class="leader-week-items">${items.map(renderCard).join('')}</div></details>`;
     }).join(''):'<div class="empty-material">Nenhum material publicado.</div>';
   };
 })();
