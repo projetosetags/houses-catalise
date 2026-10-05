@@ -7,9 +7,9 @@
   function weekKey(m){return m.week_start?dateISO(sunday(m.week_start)):'sem-data'}
   function weekLabel(key){if(key==='sem-data')return 'Materiais sem período definido';const s=new Date(`${key}T12:00:00`),e=new Date(s);e.setDate(e.getDate()+6);return `Semana ${String(s.getDate()).padStart(2,'0')} a ${String(e.getDate()).padStart(2,'0')} de ${e.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}`}
   const usable=v=>!!(v&&!/^data:[^,]*;base64,$/i.test(v));
-  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\bcolorido\b|\bp&b\b|\bpb\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
+  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\bcolorido\b|\bcolor\b|\bp&b\b|\bpb\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
   const isKids=m=>m.category==='kids'||/^kids\b|\bkids\b/i.test(String(m.title||''));
-  const isColor=m=>/colorid|com versicul/i.test(String(m.description||''))||/(?:^|[ _.-])c(?:[ _.-]|\.pdf$)/i.test(String(m.file_name||''));
+  const isColor=m=>/\bcolor\b|colorid|com versicul/i.test(String(m.description||''))||/\bcolor\b|colorid/i.test(String(m.file_name||''))||/(?:^|[ _.-])c(?:[ _.-]|\.pdf$)/i.test(String(m.file_name||''));
   function guideKey(m){return `${weekKey(m)}|${norm(m.title)}`}
   function urlOf(m){return m?(m.download_url||m.material_url||m.view_url||''):''}
   function mergeGuides(list){
