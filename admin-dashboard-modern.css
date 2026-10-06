@@ -11,3 +11,37 @@
 #weekChart{height:210px;max-height:210px;overflow:hidden;padding:10px 4px 0}#weekChart.modern-ready{display:block!important;height:220px;max-height:220px;padding:0 4px 4px}#weekChart.modern-ready .modern-line-chart{width:100%;height:100%;display:block;overflow:visible}.modern-line-chart .gridline{stroke:rgba(77,91,74,.16);stroke-width:1}.modern-line-chart .line{fill:none;stroke:#4d5b4a;stroke-width:3.2}.modern-line-chart .point{fill:#fff;stroke:#4d5b4a;stroke-width:3}.modern-line-chart .value{fill:#354237}.modern-line-chart .label{fill:#5f685f}.modern-chart-legend{color:#5f685f;font-size:12px}.modern-chart-legend b{color:#354237;font-size:13px}#overview>.card,#overview .dashboard>.card,#overview .traffic-summary{position:relative;z-index:1}
 @media(max-width:900px){#app>nav{grid-template-columns:repeat(3,1fr)}.kpis article{padding-left:70px!important}.kpis article:before{left:13px}.kpis article:after{left:70px}}
 @media(max-width:640px){#app>nav{grid-template-columns:repeat(2,1fr);gap:6px}#app>nav .tab,#app>nav .tab:nth-child(n){padding:12px 6px!important;font-size:12px!important}#app>nav .tab:before{font-size:15px;margin-right:5px}.kpis{grid-template-columns:1fr 1fr}.kpis article{min-height:120px;padding:16px 10px 13px 62px!important}.kpis article:before{left:10px;top:16px;width:42px;height:42px;font-size:21px}.kpis article:after{left:62px;bottom:12px;font-size:9px}.kpis span{font-size:9px!important}.kpis b{font-size:29px!important}.dashboard{grid-template-columns:1fr!important}.dashboard>.card{min-height:auto}.card h2,.card h3,.weekly-admin-grid h3{font-size:19px!important}.pastoral-week-head h2{font-size:26px!important}.pastoral-week-head .week-range{font-size:14px!important}}
+
+
+/* 06/10/2026 — alternador de tema */
+.header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+#themeToggle{width:44px!important;height:44px!important;min-width:44px!important;padding:0!important;margin:0!important;border:1px solid rgba(255,255,255,.28)!important;border-radius:12px!important;background:#f7f5f0!important;color:#354237!important;font-size:21px!important;line-height:1!important;display:grid!important;place-items:center!important;box-shadow:0 5px 15px rgba(31,42,35,.16)!important;cursor:pointer}
+#themeToggle:hover{transform:translateY(-1px)}
+#themeToggle .theme-icon{display:block;transform:translateY(-1px)}
+body.theme-dark{background:#1f2a22!important;color:#f7f5f0!important}
+body.theme-dark:before{background:linear-gradient(rgba(31,42,34,.90),rgba(31,42,34,.94)),url("assets/ponte-catalise-generated.svg?v=20261006-1") center/cover fixed no-repeat!important}
+body.theme-dark header{background:#29352c!important;border-bottom-color:#eb8f3b!important}
+body.theme-dark #themeToggle{background:#172019!important;color:#fff!important;border-color:#73806f!important}
+body.theme-dark .card,body.theme-dark .kpis article,body.theme-dark .house,body.theme-dark .detailkpis article,body.theme-dark .dashboard>.card,body.theme-dark .pastoral-export{background:#2c392f!important;color:#fff!important;border-color:#536050!important;box-shadow:0 10px 28px rgba(0,0,0,.22)!important}
+body.theme-dark .card h2,body.theme-dark .card h3,body.theme-dark .card h4,body.theme-dark .weekly-admin-grid h3,body.theme-dark .house h3,body.theme-dark .rankmain b,body.theme-dark .traffic-main b,body.theme-dark .detailrow b,body.theme-dark .pastoral-export h3{color:#fff!important}
+body.theme-dark .card p,body.theme-dark .card small,body.theme-dark .hint,body.theme-dark .week-note,body.theme-dark .admin-item p,body.theme-dark .row small,body.theme-dark .rankmain>small,body.theme-dark .traffic-main>small,body.theme-dark .detailrow small,body.theme-dark .detailrow p,body.theme-dark .export-hint{color:#d8ded5!important}
+body.theme-dark #app>nav .tab,body.theme-dark #app>nav .tab:nth-child(n){background:#344238!important;color:#fff!important;border-color:#5c6b5a!important}
+body.theme-dark #app>nav .tab.active{background:#f7f5f0!important;color:#29352c!important;border-color:#f7f5f0!important}
+body.theme-dark #app>nav .tab.active:before{color:#29352c!important}
+body.theme-dark .kpis article,body.theme-dark .kpis article:nth-child(n){background:#344238!important;border-color:#566454!important}
+body.theme-dark .kpis span,body.theme-dark .kpis b{color:#fff!important}
+body.theme-dark .kpis article:before{background:#455548!important;color:#fff!important}
+body.theme-dark .kpis article:after{color:#d5ddd2!important}
+body.theme-dark input,body.theme-dark select,body.theme-dark textarea{background:#223027!important;color:#fff!important;border-color:#657361!important}
+body.theme-dark input::placeholder,body.theme-dark textarea::placeholder{color:#c2cbc0!important}
+body.theme-dark option{background:#223027;color:#fff}
+body.theme-dark .admin-item,body.theme-dark .published-communication,body.theme-dark .published-material{background:#314036!important;color:#fff!important;border-color:#536252!important}
+body.theme-dark .tag{background:#455548!important;color:#fff!important;border-color:#657361!important}
+body.theme-dark .traffic-card,body.theme-dark .traffic-label,body.theme-dark .detail-status{filter:saturate(.75) brightness(.78)}
+body.theme-dark .pastoral-day{background:#344238!important;border-color:#536252!important;color:#fff!important}
+body.theme-dark .pastoral-day.today{background:#eb8f3b!important;color:#283027!important}
+body.theme-dark #weekChart .modern-line-chart .gridline{stroke:rgba(255,255,255,.16)}
+body.theme-dark #weekChart .modern-line-chart .line{stroke:#dfe8dc}
+body.theme-dark #weekChart .modern-line-chart .point{fill:#2c392f;stroke:#dfe8dc}
+body.theme-dark #weekChart .modern-line-chart .value,body.theme-dark #weekChart .modern-line-chart .label{fill:#eef2ec}
+@media(max-width:640px){#themeToggle{width:40px!important;height:40px!important;min-width:40px!important;font-size:19px!important}}
