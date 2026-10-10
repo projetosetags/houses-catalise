@@ -1,0 +1,1 @@
+{"name":"houses-cloudflare","private":true,"type":"module","scripts":{"test":"node --test test/*.test.mjs","deploy":"wrangler deploy --config wrangler.jsonc"},"devDependencies":{"wrangler":"4.149.0"}}
