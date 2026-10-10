@@ -16,9 +16,9 @@ async function upsert(rowId,data){
 
 await upsert('notice_tubarao_202609',{
   title:'Agenda Tubarão',
-  message:'22/09/26 | ESCOLA DO DISCÍPULO\n24/09/26 | CULTO DE MULHERES\n01/10/26 | CULTO DE HOMENS',
-  starts_on:'2026-09-17',
-  ends_on:'2026-10-01',
+  message:'01.10 - CULTO DE HOMENS\n08.10 - THE CHOSEN\n12.10 - DIA DA FAMÍLIA - HOTEL TERMAS DO RIO DO POUSO\n18.10 - CULTO ESPECIAL - PASTOR PAULO MAZONI\n29.10 - CULTO DE MULHERES',
+  starts_on:'2026-09-29',
+  ends_on:'2026-10-31',
   network_id:null,
   house_id:null,
   priority:20,
@@ -27,13 +27,13 @@ await upsert('notice_tubarao_202609',{
 
 await upsert('notice_braco_norte_202609',{
   title:'Agenda Braço do Norte',
-  message:'24/09/26 | CULTO DE MULHERES – CATALISE TUBARÃO\n01/10/26 | CULTO DE HOMENS – CATALISE TUBARÃO',
-  starts_on:'2026-09-17',
-  ends_on:'2026-10-01',
+  message:'01.10 - CULTO DE HOMENS - CATALISE TUBARÃO\n06.10 - ESCOLA DO DISCÍPULO\n08.10 - THE CHOSEN - CATALISE TUBARÃO\n12.10 - DIA DA FAMÍLIA - HOTEL TERMAS DO RIO DO POUSO\n29.10 - CULTO DE MULHERES - CATALISE TUBARÃO\n31.10 - CORRIDA DE CARRETILHA',
+  starts_on:'2026-09-29',
+  ends_on:'2026-10-31',
   network_id:null,
   house_id:null,
   priority:10,
   active:true
 });
 
-console.log('Avisos restaurados no formato dd/mm/aa, incluindo 01/10/26.');
+console.log('Avisos de outubro restaurados até 31/10/26.');
