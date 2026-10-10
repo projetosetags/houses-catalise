@@ -17,3 +17,7 @@ Testar líderes com `/?backend=cloudflare` e pastores diretamente em `/admin.htm
 ## Verificação local
 
 `npm ci && npm test`. Os testes compilam o Worker e executam workerd com D1 e KV locais, sem tocar dados reais. Verificam rollback de importação, integridade dos arquivos, autenticação, CORS, materiais privados, fotos, respostas pastorais e edição de encontros. Uploads reais de maior tamanho e custo de CPU ainda precisam ser verificados no Worker publicado.
+
+## Primeiro build após habilitar a integração
+
+Salvar a configuração de Production com builds habilitados não publica commits antigos automaticamente. Um novo commit em main aciona o build. Acompanhar seu resultado antes de iniciar o workflow de importação; a presença de uma versão Ready criada pelo Dashboard não comprova que a API do repositório foi publicada.
