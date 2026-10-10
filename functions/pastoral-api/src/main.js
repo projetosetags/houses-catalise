@@ -92,7 +92,7 @@ async function action(s,b){
 
 module.exports=async ({req,res,log,error})=>{
   try{
-    const s=services(req),body=req.bodyJson||{};if(!(await authorized(s.tables,req,body)))return res.json({error:'Acesso não autorizado'},401);
+    const s=services(req);let body={};if(req.body){try{body=typeof req.body==='string'?JSON.parse(req.body):req.body}catch{body={}}}if(!(await authorized(s.tables,req,body)))return res.json({error:'Acesso não autorizado'},401);
     if(req.method==='GET')return res.json(await snapshot(s));
     if(req.method==='POST'){const out=await action(s,body);log(`Ação pastoral: ${body.action}`);return res.json({ok:true,result:out})}
     return res.json({error:'Método não permitido'},405);
