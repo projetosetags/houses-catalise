@@ -13,8 +13,9 @@ function todayISO(){return new Date().toISOString().slice(0,10)}
 function isVisible(c,house=null){
   if(c.active===false)return false;const today=todayISO();
   if(c.starts_on&&c.starts_on>today)return false;if(c.ends_on&&c.ends_on<today)return false;
-  if(!house)return !c.network_id&&!c.house_id;
-  if(c.house_id&&c.house_id!==house.id)return false;if(c.network_id&&c.network_id!==house.network_id)return false;return true;
+  const targets=Array.isArray(c.house_ids)&&c.house_ids.length?c.house_ids.map(String):(c.house_id?[String(c.house_id)]:[]);
+  if(!house)return !c.network_id&&!targets.length;
+  if(targets.length&&!targets.includes(String(house.id)))return false;if(c.network_id&&c.network_id!==house.network_id)return false;return true;
 }
 function metrics(reports){
   const sorted=reports.slice().sort((a,b)=>String(b.meeting_date).localeCompare(String(a.meeting_date)));
