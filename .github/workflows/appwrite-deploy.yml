@@ -2,6 +2,12 @@ name: Deploy Appwrite - Houses Catalise
 
 on:
   workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: 'Executar carga inicial/recuperação histórica (somente configuração inicial)'
+        required: false
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -63,6 +69,7 @@ jobs:
           fi
 
       - name: Seed initial configuration
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap == true }}
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
           APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
@@ -71,6 +78,7 @@ jobs:
         run: node scripts/seed-appwrite.mjs
 
       - name: Apply pastoral access key
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap == true }}
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
           APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
@@ -78,6 +86,7 @@ jobs:
         run: node scripts/reset-pastoral-key.mjs
 
       - name: Refresh known Sep-Oct 2026 notices
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap == true }}
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
           APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
@@ -85,6 +94,7 @@ jobs:
         run: node scripts/refresh-notices.mjs
 
       - name: Recover extra October 2026 notices from legacy backend
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap == true }}
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
           APPWRITE_PROJECT_ID: 6aabcd0b000c5d1298ab
