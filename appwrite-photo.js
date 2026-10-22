@@ -1,4 +1,4 @@
-/* House Líderes — uma foto por reunião, armazenada no Appwrite. */
+/* House Líderes — uma foto por reunião, com escolha pela fototeca do celular. */
 (()=>{
   const form=document.getElementById('report');
   if(!form)return;
@@ -7,7 +7,7 @@
   if(!document.getElementById('meeting_photo')){
     const label=document.createElement('label');
     label.id='meetingPhotoField';
-    label.innerHTML='Foto da reunião <small style="display:block;margin:4px 0 8px;opacity:.75">1 foto por encontro • JPG, PNG ou WEBP • até 8 MB</small><input id="meeting_photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">';
+    label.innerHTML='Foto da reunião <small style="display:block;margin:4px 0 8px;opacity:.75">Escolha uma foto da fototeca • JPG, PNG, WEBP ou HEIC • até 8 MB</small><input id="meeting_photo" type="file" accept="image/*">';
     if(notes)notes.insertAdjacentElement('afterend',label);else form.querySelector('button[type="submit"]')?.insertAdjacentElement('beforebegin',label);
   }
 
@@ -28,7 +28,7 @@
     try{
       const photo=document.getElementById('meeting_photo')?.files?.[0]||null;
       if(photo&&photo.size>8*1024*1024)throw new Error('A foto deve ter no máximo 8 MB.');
-      if(photo&&photo.type&&!['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(photo.type))throw new Error('Use uma foto JPG, PNG, WEBP ou HEIC.');
+      if(photo&&photo.type&&!photo.type.startsWith('image/'))throw new Error('Escolha uma imagem da fototeca.');
       const body={
         meeting_date:document.getElementById('meeting_date').value,
         status,
