@@ -50,7 +50,7 @@ function profile(){const pastor=selectedPastor();return{name:$('#repName')?.valu
 function inject(){
   const ov=$('#overview');if(!ov||$('#pastoralReports'))return;
   const b=document.createElement('section');b.id='pastoralReports';b.className='pastoral-export';
-  b.innerHTML='<h3>Relatórios e Backup Pastoral</h3><p class="export-hint">Uso exclusivo dos pastores. Selecione o Pastor ou Pastora. Telefones preenchidos ou atualizados ficam gravados no Appwrite.</p><div class="pastoral-export-grid"><label>Pastor ou Pastora<select id="repName"><option value="">Selecione o Pastor ou Pastora</option>'+pastors().map(p=>'<option value="'+esc(p.name)+'">'+esc(p.role+' '+p.name)+'</option>').join('')+'</select></label><label>Cargo<input id="repRole" value="" readonly></label><label>Telefone<input id="repPhone" inputmode="tel" placeholder="Digite o telefone"></label><label class="pastoral-export-full">Observações<textarea id="repNotes"></textarea></label></div><div class="pastoral-export-actions"><button class="pastoral-pdf" id="repPdf" type="button">🖨 Imprimir / Salvar PDF</button><button class="pastoral-xlsx" id="repXlsx" type="button">⬇ Backup completo XLSX</button></div><p id="repStatus" class="pastoral-export-status"></p>';
+  b.innerHTML='<h3>Relatórios e Backup Pastoral</h3><p class="export-hint">Uso exclusivo dos pastores. Selecione o Pastor ou Pastora. Telefones preenchidos ou atualizados ficam gravados no Appwrite.</p><div class="pastoral-export-grid"><label>Nome<select id="repName"><option value="">Selecione o nome</option>'+pastors().map(p=>'<option value="'+esc(p.name)+'">'+esc(p.name.replace(/^(Pastor|Pastora)\s+/i,''))+'</option>').join('')+'</select></label><label>Cargo/Função<input id="repRole" value="" readonly></label><label>Telefone<input id="repPhone" inputmode="tel" placeholder="Digite o telefone"></label><label class="pastoral-export-full">Observações<textarea id="repNotes"></textarea></label></div><div class="pastoral-export-actions"><button class="pastoral-pdf" id="repPdf" type="button">🖨 Imprimir / Salvar PDF</button><button class="pastoral-xlsx" id="repXlsx" type="button">⬇ Backup completo XLSX</button></div><p id="repStatus" class="pastoral-export-status"></p>';
   ov.insertBefore(b,ov.firstChild);
   const saved=readSaved();
   if(saved.name&&pastors().some(p=>p.name===saved.name))$('#repName').value=saved.name;
@@ -66,7 +66,7 @@ function inject(){
   const d=window.data||{},t=d.totals||{},p=profile(),hm=d.houseMetrics||[];
   if(!p.name){$('#repStatus').textContent='Selecione o Pastor ou Pastora antes de gerar o relatório.';return}
   const logo=new URL('assets/houses-s.svg',location.href).href;
-  const responsible=`${p.role} ${p.name}`;
+  const responsible=p.name.replace(/^(Pastor|Pastora)\s+/i,'');
   const html=`<!doctype html><html><head><meta charset="utf-8"><title>Houses Pastores</title><style>
   @page{size:A4 landscape;margin:14mm 10mm 18mm}
   body{font:11px Arial;color:#172033}h1{font-size:20px;margin:0}h2{font-size:13px;color:#1e40af;margin:16px 0 5px}p{margin:3px 0}
@@ -90,7 +90,7 @@ function inject(){
 }function loadXLSX(cb){if(window.XLSX)return cb();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';s.onload=cb;s.onerror=()=>$('#repStatus').textContent='Não foi possível carregar o gerador XLSX.';document.head.appendChild(s)}function ws(rows,widths){const s=XLSX.utils.json_to_sheet(rows);s['!cols']=widths.map(w=>({wch:w}));s['!freeze']={xSplit:0,ySplit:1};const rg=XLSX.utils.decode_range(s['!ref']||'A1:A1');for(let c=rg.s.c;c<=rg.e.c;c++){const x=s[XLSX.utils.encode_cell({r:0,c})];if(x)x.s={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1E40AF'}},alignment:{horizontal:'center'}}}return s}function backup(){loadXLSX(()=>{
   const d=window.data||{},t=d.totals||{},p=profile(),wb=XLSX.utils.book_new(),hm=d.houseMetrics||[];
   if(!p.name){$('#repStatus').textContent='Selecione o Pastor ou Pastora antes de gerar o backup.';return}
-  const responsible=`${p.role} ${p.name}`;
+  const responsible=p.name.replace(/^(Pastor|Pastora)\s+/i,'');
   XLSX.utils.book_append_sheet(wb,ws([{Campo:'Houses ativas',Valor:t.houses||0},{Campo:'Registros 8 semanas',Valor:t.reports||0},{Campo:'Participações',Valor:t.attendance||0},{Campo:'Primeira vez',Valor:t.first_time||0},{Campo:'Crianças',Valor:t.children||0},{Campo:'Decisões',Valor:t.decisions||0}],[24,60]),'Resumo');
   XLSX.utils.book_append_sheet(wb,ws((d.weeks||[]).map(w=>({Semana:w.label,Registros:w.records||0,Participacoes:w.attendance||0})),[16,12,16]),'Evolucao_Semanal');
   XLSX.utils.book_append_sheet(wb,ws(hm.map((m,i)=>({Posicao:i+1,Codigo:m.code,House:m.name,Rede:m.network||'',Regularidade:(m.regularity_pct||0)+'%',Participacoes:m.attendance||0,Media:m.avg_attendance||0,PrimeiraVez:m.first_time||0,Criancas:m.children||0,Decisoes:m.decisions||0,UltimoRegistro:br(m.last_record)})),[9,12,28,20,14,16,10,14,12,12,16]),'Ranking_Semaforo');
