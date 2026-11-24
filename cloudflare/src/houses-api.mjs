@@ -54,8 +54,10 @@ async function publicPayload(s){
   const [configs,comms]=await Promise.all([listAll(s.tables,T.config),listAll(s.tables,T.communications)]);
   return {config:configs.find(x=>x.active!==false)||null,communications:comms.filter(x=>isVisible(x,null)).sort((a,b)=>(b.priority||0)-(a.priority||0))};
 }
+async function registerNovember0119(s){const houses=await listAll(s.tables,T.houses),h=houses.find(x=>x.code==='0119');if(!h)return;const reports=await listAll(s.tables,T.reports,[['house_id',h.id]]);for(const date of ['2026-11-04','2026-11-11','2026-11-18','2026-11-25']){const existing=reports.find(x=>x.house_id===h.id&&weekStart(x.meeting_date)===weekStart(date));if(existing){if(existing.status==='cancelado'&&existing.cancellation_reason!=='Trabalho e viagem')await s.tables.updateRow({databaseId:DB,tableId:T.reports,rowId:existing.id,data:{cancellation_reason:'Trabalho e viagem'}});continue;}await s.tables.createRow({databaseId:DB,tableId:T.reports,rowId:'cancel0119_'+date,data:{house_id:h.id,meeting_date:date,status:'cancelado',attendance_total:0,first_time:0,children:0,decisions_for_jesus:0,cancellation_reason:'Trabalho e viagem',care_status:'novo'}}).catch(async e=>{const existing=await listAll(s.tables,T.reports,[['house_id',h.id]]);if(!existing.some(x=>x.house_id===h.id&&weekStart(x.meeting_date)===weekStart(date)))throw e})}}
 async function housePayload(s,code){
   const hs=await listAll(s.tables,T.houses,[['code',code]]);const h=hs.find(x=>x.active!==false);if(!h)return null;
+  if(code==='0119')await registerNovember0119(s);
   const [houses,networks,reports,comms,mats,configs]=await Promise.all([
     Promise.resolve(hs),listAll(s.tables,T.networks),listAll(s.tables,T.reports,[['house_id',h.id]]),listAll(s.tables,T.communications),listAll(s.tables,T.materials),listAll(s.tables,T.config)
   ]);
